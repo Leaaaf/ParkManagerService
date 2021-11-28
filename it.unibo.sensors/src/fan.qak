@@ -1,0 +1,45 @@
+System fan
+
+Dispatch updatefan : updatefan(X)
+
+Context ctxfan ip [host="localhost" port=8001]
+
+QActor fanactor context ctxfan {
+	[#
+		var state : String = "OFF"	
+	#]
+	
+	State s0 initial {
+		discardMsg On
+		println("FAN | Started...")
+	}
+	Goto work
+	
+	State work {
+		println("FAN | State: $state")
+	}
+	Transition t0 whenMsg updatefan -> update
+				  
+	State update {
+		printCurrentMessage
+		onMsg(updatefan : updatefan(X)) {
+			[#
+				val value = payloadArg(0)
+				state = value
+			#]
+		}
+		updateResource [# state #]
+	}
+	Goto work
+}
+
+/*
+QActor sender context ctxfan {
+	State s0 initial {
+		forward fanactor -m updatefan : updatefan(ON)
+		delay 2000
+		forward fanactor -m updatefan : updatefan(OFF)
+		delay 2000
+	}
+}
+*/
