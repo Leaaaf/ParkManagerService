@@ -15,7 +15,7 @@ QActor weightsensoractor context ctxweightsensor {
 	Goto work
 	
 	State work {
-		println("WEIGHT SENSOR | weigth: $weight")
+		println("WEIGHT SENSOR | weight: $weight")
 	}
 	Transition t0 whenEvent measureweight -> measure
 	

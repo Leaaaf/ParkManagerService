@@ -1,0 +1,32 @@
+System thermometer
+
+Event measuretemperature : measuretemperature(X)
+
+Context ctxthermometer ip [host="localhost" port=8003]
+
+QActor thermometeractor context ctxthermometer {
+	[#
+		var temperature : Float = 0.0F
+	#]
+	State s0 initial {
+		discardMsg On
+		println("THERMOMETER SENSOR | Started...")
+	}
+	Goto work
+	
+	State work {
+		println("THERMOMETER SENSOR | temperature: $temperature")
+	}
+	Transition t0 whenEvent measuretemperature -> measure
+	
+	State measure {
+		printCurrentMessage
+		onMsg(measuretemperature : measuretemperature(X)) {
+			[# 
+				val value = payloadArg(0) 
+				temperature = value.toFloat()
+			#]
+		}
+	}
+	Goto work
+}
