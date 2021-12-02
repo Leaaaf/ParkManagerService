@@ -2,4 +2,4 @@
 % fan description   
 %====================================================================================
 context(ctxfan, "localhost",  "TCP", "8001").
- qactor( fan, ctxfan, "it.unibo.fan.Fan").
+ qactor( fanactor, ctxfan, "it.unibo.fanactor.Fanactor").
