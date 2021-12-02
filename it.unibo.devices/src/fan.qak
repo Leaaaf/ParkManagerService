@@ -10,7 +10,7 @@ QActor fanactor context ctxfan {
 	#]
 	
 	State s0 initial {
-		discardMsg On
+		discardMsg Off
 		println("FAN | Started...")
 	}
 	Goto work

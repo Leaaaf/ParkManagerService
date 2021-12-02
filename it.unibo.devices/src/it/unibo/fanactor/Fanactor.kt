@@ -21,7 +21,7 @@ class Fanactor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, s
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						discardMessages = true
+						discardMessages = false
 						println("FAN | Started...")
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )

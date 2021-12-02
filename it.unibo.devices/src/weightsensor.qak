@@ -1,0 +1,32 @@
+System weightsensor
+
+Event measureweight : measureweight(X)
+
+Context ctxweightsensor ip [host="localhost" port=8002]
+
+QActor weightsensoractor context ctxweightsensor {
+	[#
+		var weight : Float = 0.0F
+	#]
+	State s0 initial {
+		discardMsg On
+		println("WEIGHT SENSOR | Started...")
+	}
+	Goto work
+	
+	State work {
+		println("WEIGHT SENSOR | weigth: $weight")
+	}
+	Transition t0 whenEvent measureweight -> measure
+	
+	State measure {
+		printCurrentMessage
+		onMsg(measureweight : measureweight(X)) {
+			[# 
+				val value = payloadArg(0) 
+				weight = value.toFloat()
+			#]
+		}
+	}
+	Goto work
+}
