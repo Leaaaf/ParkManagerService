@@ -1,0 +1,32 @@
+System weightsensor
+
+Event measuredistance : measuredistance(X)
+
+Context ctxoutsonarsensor ip [host="localhost" port=8004]
+
+QActor outsonaractor context ctxoutsonarsensor {
+	[#
+		var distance : Int = 0
+	#]
+	State s0 initial {
+		discardMsg On
+		println("OUTSONAR SENSOR | Started...")
+	}
+	Goto work
+	
+	State work {
+		println("OUTSONAR SENSOR | distance: $distance")
+	}
+	Transition t0 whenEvent measuredistance -> measure
+	
+	State measure {
+		printCurrentMessage
+		onMsg(measuredistance : measuredistance(X)) {
+			[# 
+				val value = payloadArg(0) 
+				distance = value.toInt()
+			#]
+		}
+	}
+	Goto work
+}
