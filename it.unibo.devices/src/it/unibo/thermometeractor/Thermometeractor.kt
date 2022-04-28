@@ -30,7 +30,7 @@ class Thermometeractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 					action { //it:State
 						println("THERMOMETER SENSOR | temperature: $temperature")
 					}
-					 transition(edgeName="t00",targetState="measure",cond=whenEvent("measuretemperature"))
+					 transition(edgeName="t00",targetState="measure",cond=whenDispatch("measuretemperature"))
 				}	 
 				state("measure") { //this:State
 					action { //it:State

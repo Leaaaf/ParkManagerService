@@ -1,0 +1,15 @@
+System basicdevices
+
+/* Messages */
+Dispatch updatefan : updatefan(X)
+Dispatch measuredistance : measuredistance(X)
+Dispatch measuretemperature : measuretemperature(X)
+Dispatch measureweight : measureweight(X)
+
+/* Contexts */
+Context ctxfan ip[host="localhost" port=8001]
+Context ctxweightsensor ip[host="localhost" port=8002]
+Context ctxthermometer ip[host="localhost" port=8003]
+Context ctxoutsonar ip[host="localhost" port=8004]
+
+Context carparking ip[host="localhost" port=8100]

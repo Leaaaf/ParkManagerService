@@ -1,6 +1,6 @@
-System weightsensor
+System weightsensor 
 
-Event measureweight : measureweight(X)
+Dispatch measureweight : measureweight(X)
 
 Context ctxweightsensor ip [host="localhost" port=8002]
 
@@ -17,7 +17,7 @@ QActor weightsensoractor context ctxweightsensor {
 	State work {
 		println("WEIGHT SENSOR | weight: $weight")
 	}
-	Transition t0 whenEvent measureweight -> measure
+	Transition t0 whenMsg measureweight -> measure
 	
 	State measure {
 		printCurrentMessage

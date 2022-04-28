@@ -30,7 +30,7 @@ class Weightsensoractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm
 					action { //it:State
 						println("WEIGHT SENSOR | weight: $weight")
 					}
-					 transition(edgeName="t00",targetState="measure",cond=whenEvent("measureweight"))
+					 transition(edgeName="t00",targetState="measure",cond=whenDispatch("measureweight"))
 				}	 
 				state("measure") { //this:State
 					action { //it:State

@@ -17,7 +17,15 @@ class Fanactor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, s
 	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var state : String = "OFF"	
+				val fan = it.unibo.devices.DeviceManager.getDevice("fan")
+				lateinit var state : it.unibo.fan.FanState
+				
+				if(fan == null) {
+					println("$name | unable to use the fan")
+					System.exit(-1)
+				}
+				
+				fan as it.unibo.fan.AbstractFan	
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -34,15 +42,6 @@ class Fanactor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, s
 				}	 
 				state("update") { //this:State
 					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("updatefan(X)"), Term.createTerm("updatefan(X)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								
-												val value = payloadArg(0)
-												state = value
-						}
-						updateResourceRep( state  
-						)
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 

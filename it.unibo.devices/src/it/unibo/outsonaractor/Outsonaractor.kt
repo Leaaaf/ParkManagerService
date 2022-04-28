@@ -30,7 +30,7 @@ class Outsonaractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 					action { //it:State
 						println("OUTSONAR SENSOR | distance: $distance")
 					}
-					 transition(edgeName="t00",targetState="measure",cond=whenEvent("measuredistance"))
+					 transition(edgeName="t00",targetState="measure",cond=whenDispatch("measuredistance"))
 				}	 
 				state("measure") { //this:State
 					action { //it:State

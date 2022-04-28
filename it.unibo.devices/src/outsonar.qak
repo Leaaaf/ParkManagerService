@@ -1,6 +1,6 @@
-System weightsensor
+System outsonar
 
-Event measuredistance : measuredistance(X)
+Dispatch measuredistance : measuredistance(X)
 
 Context ctxoutsonarsensor ip [host="localhost" port=8004]
 
@@ -17,7 +17,7 @@ QActor outsonaractor context ctxoutsonarsensor {
 	State work {
 		println("OUTSONAR SENSOR | distance: $distance")
 	}
-	Transition t0 whenEvent measuredistance -> measure
+	Transition t0 whenMsg measuredistance -> measure
 	
 	State measure {
 		printCurrentMessage

@@ -1,6 +1,6 @@
 System thermometer
 
-Event measuretemperature : measuretemperature(X)
+Dispatch measuretemperature : measuretemperature(X)
 
 Context ctxthermometer ip [host="localhost" port=8003]
 
@@ -17,7 +17,7 @@ QActor thermometeractor context ctxthermometer {
 	State work {
 		println("THERMOMETER SENSOR | temperature: $temperature")
 	}
-	Transition t0 whenEvent measuretemperature -> measure
+	Transition t0 whenMsg measuretemperature -> measure
 	
 	State measure {
 		printCurrentMessage
