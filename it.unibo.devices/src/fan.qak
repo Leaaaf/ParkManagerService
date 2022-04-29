@@ -11,8 +11,8 @@ QActor fanactor context ctxfan {
 		val fan = it.unibo.devices.DeviceManager.getDevice("fan")
 		lateinit var state : it.unibo.fan.FanState
 		
-		if(fan == null) {
-			println("$name | unable to use the fan")
+		if (fan == null) {
+			println("$name | Unable to use the fan")
 			System.exit(-1)
 		}
 		
@@ -20,18 +20,31 @@ QActor fanactor context ctxfan {
 	#]
 	
 	State s0 initial {
-		discardMsg Off
-		println("FAN | Started...")
-	}
-	Goto work
+		println("$name | Started...")	
+		[#
+			state = `it.unibo.fan`.FanState.OFF
+		#]
+	} Goto work
 	
 	State work {
-		println("FAN | State: $state")
-	}
-	Transition t0 whenMsg updatefan -> update
-				  
-	State update {
+		updateResource[# state.toString() #]
+		println("$name | Fan state: ${state.toString()}")
+	} Transition t0 whenMsg updatefan 	-> work
+					whenMsg fanon 		-> poweron
+					whenMsg fanoff 		-> poweroff
 		
-	}
-	Goto work
+	State poweron {
+		[#
+			fan.powerOn()
+			state = `it.unibo.fan`.FanState.ON
+		#]
+	} Goto work
+	
+	State poweroff {
+		[#
+			fan.powerOff()
+			state = `it.unibo.fan`.FanState.OFF
+		#]
+	} Goto work
+	
 }

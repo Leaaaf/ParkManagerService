@@ -18,30 +18,48 @@ class Fanactor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name, s
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				val fan = it.unibo.devices.DeviceManager.getDevice("fan")
-				lateinit var state : it.unibo.fan.FanState
-				
-				if(fan == null) {
-					println("$name | unable to use the fan")
-					System.exit(-1)
-				}
-				
-				fan as it.unibo.fan.AbstractFan	
+			 	lateinit var state : it.unibo.fan.FanState
+			 	var json : String
+			 	
+			 	if (fan == null) {
+			 		println("$name | Unable to use fan")
+			 		System.exit(-1)
+			 	}
+			 	
+			 	fan as it.unibo.fan.AbstractFan
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						discardMessages = false
-						println("FAN | Started...")
+						println("$name | Started...")
+						
+									fan.powerOff()
+									state = `it.unibo.fan`.FanState.OFF
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("work") { //this:State
 					action { //it:State
-						println("FAN | State: $state")
+						 json = "{\"data\": \"${state}\"}"  
+						updateResourceRep( state.toString()  
+						)
+						println("$name | Fan state: ${state.toString()}")
 					}
-					 transition(edgeName="t00",targetState="update",cond=whenDispatch("updatefan"))
+					 transition(edgeName="t00",targetState="poweron",cond=whenDispatch("fanon"))
+					transition(edgeName="t01",targetState="poweroff",cond=whenDispatch("fanoff"))
 				}	 
-				state("update") { //this:State
+				state("poweron") { //this:State
 					action { //it:State
+						
+									fan.powerOn()
+									state = `it.unibo.fan`.FanState.ON
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("poweroff") { //this:State
+					action { //it:State
+						
+									fan.powerOff()
+									state = `it.unibo.fan`.FanState.OFF
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 

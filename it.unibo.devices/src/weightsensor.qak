@@ -1,32 +1,32 @@
 System weightsensor 
 
-Dispatch measureweight : measureweight(X)
+Dispatch updateweightsensor : updateweightsensor(X)
 
 Context ctxweightsensor ip [host="localhost" port=8002]
 
 QActor weightsensoractor context ctxweightsensor {
 	[#
-		var weight : Float = 0.0F
+		val weightsensor = it.unibo.devices.DeviceManager.getDevice("indoor_sensor")
+		var weight : Double
+		
+		if (weightsensor == null) {
+			println("$name | Unable to use the weight sensor")
+			System.exit(-1)
+		}
+		
+		weightsensor as it.unibo.weightsensor.AbstractWeightSensor	
 	#]
+	
 	State s0 initial {
-		discardMsg On
-		println("WEIGHT SENSOR | Started...")
+		println("$name | Started...")
 	}
 	Goto work
 	
 	State work {
-		println("WEIGHT SENSOR | weight: $weight")
+		[# weight = weightsensor.readWeight() #]
+		updateResource[# weight.toString() #]
+		println("$name | Weight: $weight")
 	}
-	Transition t0 whenMsg measureweight -> measure
+	Transition t0 whenMsg updateweightsensor -> work
 	
-	State measure {
-		printCurrentMessage
-		onMsg(measureweight : measureweight(X)) {
-			[# 
-				val value = payloadArg(0) 
-				weight = value.toFloat()
-			#]
-		}
-	}
-	Goto work
 }

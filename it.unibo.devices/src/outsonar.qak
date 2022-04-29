@@ -1,32 +1,29 @@
 System outsonar
 
-Dispatch measuredistance : measuredistance(X)
+Dispatch updateoutsonar : updateoutsonar(X)
 
 Context ctxoutsonarsensor ip [host="localhost" port=8004]
 
 QActor outsonaractor context ctxoutsonarsensor {
-	[#
-		var distance : Int = 0
+	[# 
+		val outsonar = it.unibo.devices.DeviceManager.getDevice("outsonar")
+		var distance : Int
+		
+		if (outsonar == null) {
+			println("$name | Unable to use outsonar")
+			System.exit(-1)
+		}
+		
+		outsonar as it.unibo.outsonar.AbstractOutSonar
 	#]
+	
 	State s0 initial {
-		discardMsg On
-		println("OUTSONAR SENSOR | Started...")
-	}
-	Goto work
+		println("$name | Started...")
+	} Goto work
 	
 	State work {
-		println("OUTSONAR SENSOR | distance: $distance")
-	}
-	Transition t0 whenMsg measuredistance -> measure
-	
-	State measure {
-		printCurrentMessage
-		onMsg(measuredistance : measuredistance(X)) {
-			[# 
-				val value = payloadArg(0) 
-				distance = value.toInt()
-			#]
-		}
-	}
-	Goto work
+		[# distance = outsonar.readDistance() #]
+		updateResource[# distance.toString() #]
+		println("$name | Distance: $distance")
+	} Transition t0 whenMsg updateoutsonar -> work
 }

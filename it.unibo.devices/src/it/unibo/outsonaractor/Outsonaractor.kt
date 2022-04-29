@@ -16,33 +16,31 @@ class Outsonaractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 	@kotlinx.coroutines.ObsoleteCoroutinesApi
 	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		
-				var distance : Int = 0
+		 
+				val outsonar = it.unibo.devices.DeviceManager.getDevice("outsonar")
+				var distance : Int
+				
+				if (outsonar == null) {
+					println("$name | Unable to use outsonar")
+					System.exit(-1)
+				}
+				
+				outsonar as it.unibo.outsonar.AbstractOutSonar
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						discardMessages = true
-						println("OUTSONAR SENSOR | Started...")
+						println("$name | Started...")
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("work") { //this:State
 					action { //it:State
-						println("OUTSONAR SENSOR | distance: $distance")
+						 distance = outsonar.readDistance()  
+						updateResourceRep( distance.toString()  
+						)
+						println("$name | Distance: $distance")
 					}
-					 transition(edgeName="t00",targetState="measure",cond=whenDispatch("measuredistance"))
-				}	 
-				state("measure") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("measuredistance(X)"), Term.createTerm("measuredistance(X)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								 
-												val value = payloadArg(0) 
-												distance = value.toInt()
-						}
-					}
-					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+					 transition(edgeName="t00",targetState="work",cond=whenDispatch("updateoutsonar"))
 				}	 
 			}
 		}

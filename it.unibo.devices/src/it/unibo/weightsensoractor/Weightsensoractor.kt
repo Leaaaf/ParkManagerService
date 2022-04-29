@@ -16,33 +16,74 @@ class Weightsensoractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm
 	@kotlinx.coroutines.ObsoleteCoroutinesApi
 	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		
-				var weight : Float = 0.0F
+		 
+				val weightsensor = it.unibo.devices.DeviceManager.getDevice("indoor_sensor")
+				var weight : Double
+				var state = ""
+				var jsonState = ""
+				 
+				var POLLING_MS : Long = 1000
+				val min_weight = 0.1
+				
+				if (weightsensor == null) {
+					println("$name | Unable to use the weight sensor")
+					System.exit(-1)
+				}
+				
+				weightsensor as it.unibo.weightsensor.AbstractWeightSensor
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						discardMessages = true
-						println("WEIGHT SENSOR | Started...")
+						println("$name | Started...")
+						
+									weight = weightsensor.readWeight()
+									if (weight < min_weight)
+										state = "OFF"
+									else 
+										state = "ON"
+										
+									jsonState = "{\"data\": \"$weight\", \"state\": \"$state\"}"
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("work") { //this:State
 					action { //it:State
-						println("WEIGHT SENSOR | weight: $weight")
+						println("$name | State: $jsonState")
 					}
-					 transition(edgeName="t00",targetState="measure",cond=whenDispatch("measureweight"))
+					 transition(edgeName="t02",targetState="setpolling",cond=whenDispatch("dopolling"))
 				}	 
-				state("measure") { //this:State
+				state("setpolling") { //this:State
 					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("measureweight(X)"), Term.createTerm("measureweight(X)"), 
+						if( checkMsgContent( Term.createTerm("dopolling(TIME)"), Term.createTerm("dopolling(TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								 
-												val value = payloadArg(0) 
-												weight = value.toFloat()
+								 POLLING_MS = payloadArg(0).toLong()  
 						}
+						println("$name | Start polling with $POLLING_MS ms")
 					}
-					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+					 transition( edgeName="goto",targetState="polling", cond=doswitch() )
+				}	 
+				state("polling") { //this:State
+					action { //it:State
+						
+									weight = weightsensor.readWeight()
+									
+									if (state.toUpperCase().equals("OFF") && weight > min_weight) {
+										state = "ON"
+						emit("weighton", "weighton(ON)" ) 
+						
+									} else if (state.toUpperCase().equals("ON") && weight < min_weight)
+										state = "OFF"
+						emit("weightoff", "weightoff(OFF)" ) 
+						
+									}
+									
+									jsonState = "{\"data\": \"$weight\", \"state\": \"$state\"}"
+						updateResourceRep( jsonState  
+						)
+						stateTimer = TimerActor("timer_polling", 
+							scope, context!!, "local_tout_weightsensoractor_polling", POLLING_MS )
+					}
+					 transition(edgeName="t03",targetState="polling",cond=whenTimeout("local_tout_weightsensoractor_polling"))   
 				}	 
 			}
 		}

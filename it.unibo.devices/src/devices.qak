@@ -1,0 +1,139 @@
+System devices
+
+Dispatch dopolling : dopolling(TIME)
+Dispatch stoppolling : stoppolling(X)
+
+// Fan
+Dispatch fanon : fanon(X)
+Dispatch fanoff : fanoff(X)
+// WeightSensor
+Event weighton : weighton(X)
+Event weightoff : weightoff(X)
+// Thermometer
+Dispatch updatethermometer : updatethermometer(X)
+Event criticaltemp : criticaltemp(X)
+// Sonar
+Event outsonaron : outsonaron(X)
+Event outsonaroff : outsonaroff(X)
+
+Context ctxfan ip[host="localhost" port=8001]
+Context ctxweightsensor ip[host="localhost" port=8002]
+Context ctxthermometer ip[host="localhost" port=8003]
+Context ctxoutsonar ip[host="localhost" port=8004]
+
+Context ctxcarparking ip[host="localhost" port=8100]
+
+QActor fanactor context ctxfan {
+	[#
+		val fan = it.unibo.devices.DeviceManager.getDevice("fan")
+	 	lateinit var state : it.unibo.fan.FanState
+	 	var json : String
+	 	
+	 	if (fan == null) {
+	 		println("$name | Unable to use fan")
+	 		System.exit(-1)
+	 	}
+	 	
+	 	fan as it.unibo.fan.AbstractFan
+	#]
+	
+	State s0 initial {
+		println("$name | Started...")	
+		[#
+			fan.powerOff()
+			state = `it.unibo.fan`.FanState.OFF
+		#]
+	} Goto work
+	
+	State work {
+		[# json = "{\"data\": \"${state}\"}" #]
+		updateResource[# state.toString() #]
+		println("$name | Fan state: ${state.toString()}")
+	} Transition t0 whenMsg fanon	-> poweron
+					whenMsg fanoff 	-> poweroff
+		
+	State poweron {
+		[#
+			fan.powerOn()
+			state = `it.unibo.fan`.FanState.ON
+		#]
+	} Goto work
+	
+	State poweroff {
+		[#
+			fan.powerOff()
+			state = `it.unibo.fan`.FanState.OFF
+		#]
+	} Goto work
+}
+
+QActor weightsensoractor context ctxweightsensor {
+	[# 
+		val weightsensor = it.unibo.devices.DeviceManager.getDevice("indoor_sensor")
+		var weight : Double
+		var state = ""
+		var jsonState = ""
+		 
+		var POLLING_MS : Long = 1000
+		val min_weight = 0.1
+		
+		if (weightsensor == null) {
+			println("$name | Unable to use the weight sensor")
+			System.exit(-1)
+		}
+		
+		weightsensor as it.unibo.weightsensor.AbstractWeightSensor
+	#]
+	
+	State s0 initial {
+		println("$name | Started...")
+		[#
+			weight = weightsensor.readWeight()
+			if (weight < min_weight)
+				state = "OFF"
+			else 
+				state = "ON"
+				
+			jsonState = "{\"data\": \"$weight\", \"state\": \"$state\"}"
+		#]
+	} Goto work
+	
+	State work {
+		println("$name | State: $jsonState")
+	} Transition t0 whenMsg dopolling -> setpolling
+	
+	State setpolling {
+		onMsg(dopolling : dopolling(TIME)) {
+			[# POLLING_MS = payloadArg(0).toLong() #]
+		}
+		println("$name | Start polling with $POLLING_MS ms")
+	} Goto polling
+	
+	State polling {
+		[#
+			weight = weightsensor.readWeight()
+			
+			if (state.toUpperCase().equals("OFF") && weight > min_weight) {
+				state = "ON"
+		#]
+		emit weighton : weighton(ON)
+		[#
+			} else if (state.toUpperCase().equals("ON") && weight < min_weight)
+				state = "OFF"
+		#]
+		emit weightoff : weightoff(OFF)
+		[#
+			}
+			
+			jsonState = "{\"data\": \"$weight\", \"state\": \"$state\"}"
+		#]
+		updateResource[# jsonState #]
+	} Transition t0 whenTimeVar POLLING_MS -> polling
+}
+
+
+
+
+
+
+
