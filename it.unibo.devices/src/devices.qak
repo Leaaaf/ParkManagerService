@@ -116,12 +116,12 @@ QActor weightsensoractor context ctxweightsensor {
 			if (state.toUpperCase().equals("OFF") && weight > min_weight) {
 				state = "ON"
 		#]
-		emit weighton : weighton(ON)
+				emit weighton : weighton(ON)
 		[#
-			} else if (state.toUpperCase().equals("ON") && weight < min_weight)
+			} else if (state.toUpperCase().equals("ON") && weight < min_weight) {
 				state = "OFF"
 		#]
-		emit weightoff : weightoff(OFF)
+				emit weightoff : weightoff(OFF)
 		[#
 			}
 			
@@ -129,11 +129,117 @@ QActor weightsensoractor context ctxweightsensor {
 		#]
 		updateResource[# jsonState #]
 	} Transition t0 whenTimeVar POLLING_MS -> polling
+					whenMsg stoppolling -> work
+					whenMsg dopolling -> setpolling
 }
 
 
+QActor thermometheractor context ctxthermometer {
+	[#
+		val thermometer = it.unibo.devices.DeviceManager.getDevice("thermometer")
+		var tempState = `it.unibo.thermometer`.ThermometerState.NORMAL
+		var temp = 0.0
+		var POLLING_TIME = it.unibo.thermometer.AbstractThermometer.getPollingMs()
+		var CRITICAL_TEMP = it.unibo.thermometer.AbstractThermometer.getCriticalTemp()
+		var jsonData: String
+		
+		if (thermometer == null) {
+			println("$name | Unable to use thermometer")
+			System.exit(-1)
+		}
+		
+		thermometer as it.unibo.thermometer.AbstractThermometer
+	#]
+	
+	State s0 initial {
+		println("$name | Started...")
+	} Goto work
+	
+	State work {
+		[#
+			temp = thermometer.readTemperature()
+			jsonData = "{\"data\": \"${temp}\"}"
+			if (temp >= CRITICAL_TEMP && tempState == `it.unibo.thermometer`.ThermometerState.NORMAL) {
+				tempState = `it.unibo.thermometer`.ThermometerState.CRITICAL
+		#]
+				emit criticaltemp : criticaltemp(CRITICAL)	
+		[#
+			} else if (temp < CRITICAL_TEMP && tempState == `it.unibo.thermometer`.ThermometerState.CRITICAL) {
+				tempState = `it.unibo.thermometer`.ThermometerState.NORMAL
+		#]
+				emit criticaltemp : criticaltemp(NORMAL)
+		[#
+			} 
+		#]
+		updateResource[# jsonData #]
+	} Transition t0 whenTimeVar POLLING_TIME -> work
+					whenMsg updatethermometer -> work 
+}
 
-
-
-
-
+QActor outsonaractor context ctxoutsonar {
+	[#
+		var outsonar = it.unibo.devices.DeviceManager.getDevice("outsonar")
+		var THRESHOLD_DISTANCE = it.unibo.outsonar.AbstractOutSonar.getThresholdDistance()
+		var POLLING_MS : Long = 1000
+		var distance : Int
+		var state : String = ""
+		var jsonState : String = ""
+		
+		if (outsonar == null) {
+			println("$name | Unable to use outsonar")
+			System.exit(-1)
+		}
+		
+		outsonar as it.unibo.outsonar.AbstractOutSonar
+	#]
+	
+	State s0 initial {
+		println("$name | Started...")
+		[#
+			distance = outsonar.readDistance()	
+			
+			if (distance > THRESHOLD_DISTANCE)	{
+				state = "OFF"
+			} else {
+				state = "ON"
+			}
+			
+			jsonState = "{\"data\": \"$distance\", \"state\": \"$state\"}"
+		#]
+		updateResource[# jsonState #]
+	} Goto work
+	
+	State work {
+		println("$name | State: ${jsonState}")
+	} Transition to whenMsg dopolling -> setpolling
+	
+	State setpolling {
+		onMsg(dopolling : dopolling(TIME)) {
+			[# POLLING_MS = payloadArg(0).toLong() #]
+		}
+		println("$name | Start polling with $POLLING_MS ms")
+	} Goto polling
+	
+	State polling  {
+		[#
+			distance = outsonar.readDistance()
+			
+			if (state.toUpperCase().equals("OFF") && distance < THRESHOLD_DISTANCE) {
+				state = "ON"	
+		#]
+				emit outsonaron : outsonaron(ON)
+		[#
+			} else if (state.toUpperCase().equals("ON") && distance > THRESHOLD_DISTANCE) {
+				state = "OFF"	
+		#]		
+				emit outsonaroff : outsonaroff(OFF)
+		[#		
+			}
+			
+			jsonState = "{\"data\": \"$distance\", \"state\": \"$state\"}"
+		#]
+		updateResource[# jsonState #]
+	} Transition to whenTimeVar POLLING_MS -> polling
+					whenMsg stoppolling -> work
+					whenMsg dopolling -> setpolling
+}

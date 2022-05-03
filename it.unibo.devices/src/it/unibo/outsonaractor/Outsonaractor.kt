@@ -16,9 +16,13 @@ class Outsonaractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 	@kotlinx.coroutines.ObsoleteCoroutinesApi
 	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		 
-				val outsonar = it.unibo.devices.DeviceManager.getDevice("outsonar")
+		
+				var outsonar = it.unibo.devices.DeviceManager.getDevice("outsonar")
+				var THRESHOLD_DISTANCE = it.unibo.outsonar.AbstractOutSonar.getThresholdDistance()
+				var POLLING_MS : Long = 1000
 				var distance : Int
+				var state : String = ""
+				var jsonState : String = ""
 				
 				if (outsonar == null) {
 					println("$name | Unable to use outsonar")
@@ -30,17 +34,61 @@ class Outsonaractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 				state("s0") { //this:State
 					action { //it:State
 						println("$name | Started...")
+						
+									distance = outsonar.readDistance()	
+									
+									if (distance > THRESHOLD_DISTANCE)	{
+										state = "OFF"
+									} else {
+										state = "ON"
+									}
+									
+									jsonState = "{\"data\": \"$distance\", \"state\": \"$state\"}"
+						updateResourceRep( jsonState  
+						)
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("work") { //this:State
 					action { //it:State
-						 distance = outsonar.readDistance()  
-						updateResourceRep( distance.toString()  
-						)
-						println("$name | Distance: $distance")
+						println("$name | State: ${jsonState}")
 					}
-					 transition(edgeName="t00",targetState="work",cond=whenDispatch("updateoutsonar"))
+					 transition(edgeName="to8",targetState="setpolling",cond=whenDispatch("dopolling"))
+				}	 
+				state("setpolling") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("dopolling(TIME)"), Term.createTerm("dopolling(TIME)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								 POLLING_MS = payloadArg(0).toLong()  
+						}
+						println("$name | Start polling with $POLLING_MS ms")
+					}
+					 transition( edgeName="goto",targetState="polling", cond=doswitch() )
+				}	 
+				state("polling") { //this:State
+					action { //it:State
+						
+									distance = outsonar.readDistance()
+									
+									if (state.toUpperCase().equals("OFF") && distance < THRESHOLD_DISTANCE) {
+										state = "ON"	
+						emit("outsonaron", "outsonaron(ON)" ) 
+						
+									} else if (state.toUpperCase().equals("ON") && distance > THRESHOLD_DISTANCE) {
+										state = "OFF"	
+						emit("outsonaroff", "outsonaroff(OFF)" ) 
+								
+									}
+									
+									jsonState = "{\"data\": \"$distance\", \"state\": \"$state\"}"
+						updateResourceRep( jsonState  
+						)
+						stateTimer = TimerActor("timer_polling", 
+							scope, context!!, "local_tout_outsonaractor_polling", POLLING_MS )
+					}
+					 transition(edgeName="to9",targetState="polling",cond=whenTimeout("local_tout_outsonaractor_polling"))   
+					transition(edgeName="to10",targetState="work",cond=whenDispatch("stoppolling"))
+					transition(edgeName="to11",targetState="setpolling",cond=whenDispatch("dopolling"))
 				}	 
 			}
 		}

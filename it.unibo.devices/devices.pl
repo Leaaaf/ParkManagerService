@@ -8,3 +8,5 @@ context(ctxoutsonar, "localhost",  "TCP", "8004").
 context(ctxcarparking, "localhost",  "TCP", "8100").
  qactor( fanactor, ctxfan, "it.unibo.fanactor.Fanactor").
   qactor( weightsensoractor, ctxweightsensor, "it.unibo.weightsensoractor.Weightsensoractor").
+  qactor( thermometheractor, ctxthermometer, "it.unibo.thermometheractor.Thermometheractor").
+  qactor( outsonaractor, ctxoutsonar, "it.unibo.outsonaractor.Outsonaractor").

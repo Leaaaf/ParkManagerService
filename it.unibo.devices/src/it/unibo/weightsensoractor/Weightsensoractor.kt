@@ -71,7 +71,7 @@ class Weightsensoractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm
 										state = "ON"
 						emit("weighton", "weighton(ON)" ) 
 						
-									} else if (state.toUpperCase().equals("ON") && weight < min_weight)
+									} else if (state.toUpperCase().equals("ON") && weight < min_weight) {
 										state = "OFF"
 						emit("weightoff", "weightoff(OFF)" ) 
 						
@@ -84,6 +84,8 @@ class Weightsensoractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm
 							scope, context!!, "local_tout_weightsensoractor_polling", POLLING_MS )
 					}
 					 transition(edgeName="t03",targetState="polling",cond=whenTimeout("local_tout_weightsensoractor_polling"))   
+					transition(edgeName="t04",targetState="work",cond=whenDispatch("stoppolling"))
+					transition(edgeName="t05",targetState="setpolling",cond=whenDispatch("dopolling"))
 				}	 
 			}
 		}

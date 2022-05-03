@@ -10,14 +10,14 @@ abstract class AbstractThermometer(id : String) : AbstractDevice(id, DeviceType.
 	companion object {
 		@JvmStatic private val CONFIG_FILE_PATH = "config/thermometer.conf"
 		@JvmStatic private var CRITICAL_TEMP = 25
-		@JvmStatic private var POOLING_MS : Long = 1000
+		@JvmStatic private var POLLING_MS : Long = 1000
 		
 		init {
 			val configFilePath = Paths.get(CONFIG_FILE_PATH)
 			
 			if (!Files.exists(configFilePath)) {
 				println("Thermometer | File ${configFilePath.toAbsolutePath().toString()} does not exists")
-				println("Thermometer | Default configuration will be used: CRITICAL_TEMP = $CRITICAL_TEMP :: POOLING_MS = $POOLING_MS")
+				println("Thermometer | Default configuration will be used: CRITICAL_TEMP = $CRITICAL_TEMP :: POLLING_MS = $POLLING_MS")
 				System.exit(-1)
 			}
 			println("Thermometer | Config file ${configFilePath.toAbsolutePath().toString()} found")
@@ -30,18 +30,18 @@ abstract class AbstractThermometer(id : String) : AbstractDevice(id, DeviceType.
 				println("Thermometer | Found configuration: CRITICAL_TEMP = $CRITICAL_TEMP")
 			} else println("Thermometer | Configuration not found. Default value will be used: CRITICAL_TEMP = $CRITICAL_TEMP")
 			
-			if (jsonObj.has("pooling_ms")) {
-				POOLING_MS = jsonObj.getLong("pooling_ms")
-				println("Thermometer | Found configuration: POOLING_MS = $POOLING_MS")
-			} else println("Thermometer | Configuration not found. Default value will be used: POOLING_MS = $POOLING_MS")
+			if (jsonObj.has("polling_ms")) {
+				POLLING_MS = jsonObj.getLong("polling_ms")
+				println("Thermometer | Found configuration: POLLING_MS = $POLLING_MS")
+			} else println("Thermometer | Configuration not found. Default value will be used: POLLING_MS = $POLLING_MS")
 		}
 		
 		fun getCriticalTemp() : Int {
 			return CRITICAL_TEMP
 		}
 		
-		fun getPoolingMs() : Long {
-			return POOLING_MS
+		fun getPollingMs() : Long {
+			return POLLING_MS
 		}
 	}
 	
