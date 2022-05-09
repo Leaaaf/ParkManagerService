@@ -149,6 +149,15 @@ div.remark{
     margin: 10px;
 	border-radius: 25px;
 }
+
+div.containercolumn{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+}
+
 table, th, td {
   border: 1px solid black;
   border-collapse: collapse;
@@ -250,6 +259,50 @@ div.imagedesc{
             <li><ks>Inform the client</ks>: send and show a message to the client;</li>
             <li><ks>Automated start & stop of the fan</ks>: the manager can set the automated or manual mode to start and stop the fan inside the parking-area</li>
         </ul>
+    </div>
+    <div class="remark">
+        <h3>Requirements overview - Parking Map</h3>
+        First we want to introduce a new representation of a file given by the customer representing the parking area as a <em>map</em>: <a target="_blank" href="https://github.com/anatali/issLab2021/blob/main/it.unibo.issLabStart/userDocs/parkingMap.txt">parkingMap.txt</a>
+        <table style="margin-top: 1rem;">
+            <tbody>
+                <td>
+                    <div style="display: flex; flex-direction: column; align-items: center">
+                        <img src="./img/ParkingMapCustomer.jpg" style="margin: 1rem;">
+                        <span>Map given by the customer</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="display: flex; flex-direction: column; align-items: center">
+                        <img src="./img/ParkingMapRefactor.jpg" style="margin: 1rem;">
+                        <i>Map refactoring</i>
+                    </div>
+                </td>
+            </tbody>
+        </table>
+        <div style="margin-top: 1rem;">
+            Map specifications given by the customer:
+            <ul>
+                <li><strong>r</strong>: current cell occupied by the robot</li>
+                <li><strong>0</strong>: free cell where robot can pass over it</li>
+                <li><strong style="color: #CC0000">X</strong>: cell representing a parking slot</li>
+                <li><strong>X</strong>: cell representing a fixed obstacle</li>
+                <li><strong style="background-color: #FFF2CC;">&nbsp;&nbsp;&nbsp;&nbsp;</strong>: cell representing the robot home</li>
+            </ul>
+        </div>
+        <div style="margin-top: 1rem;">
+            <h3>Requirements overview - Entities</h3>
+            Devices and reserved areas of the parking room specified by the customer:
+            <table style="margin-top: 1rem;">
+                <tbody>
+                    <td>
+                        <div style="display: flex; flex-direction: column; align-items: center">
+                            <img src="./img/ParkingMapDevices.jpg" style="margin: 1rem;">
+                            <span>Reserved areas by devices and parkign slots</span>
+                        </div>
+                    </td>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
