@@ -161,11 +161,12 @@ div.containercolumn{
 table, th, td {
   border: 1px solid black;
   border-collapse: collapse;
+  vertical-align: top;
 }
 
 ol, ul, li {
   margin: 0;
-  margin-left: 10px;
+  margin-left: 15px;
   padding: 0;
   padding-bottom: 5px;
 }
@@ -240,7 +241,7 @@ div.imagedesc{
             <li><ks>Map</ks>: it is a representation of the parking-area. The parking-area is represented by a grid of squares of fixed size length where each sqaure includes the parking-slot. Parking-slots positions are marked with a red X and fixed obstacles in the parking-area are marked with black X;</li>
             <li><ks>Fixed obstacle</ks>: non-moving object inside the parking area that the robot cannot corss;</li>
             <li><ks>Wall</ks>: fixed obstacle that delimits the parking-area;</li>
-            <li><ks>ParkingServiceGUI</ks>: a user interface interacting component that allow the client to manifest the intrest of entering the car into the parking-area and receiving the state about parking-slots (free slots). It also allow client to call robot to park the car;</li>
+            <li><ks>ParkingServiceGUI</ks>: a user interface interacting component that allow the client to manifest the interest of entering the car into the parking-area and receiving the state about parking-slots (free slots). It also allow client to call robot to park the car;</li>
             <li><ks>ParkServiceStatusGUI</ks>: a user interface interacting component that allows the parking-manager to observe the status of the parking-area including temperature, fan status (on or off) and robot;</li>
             <li><ks>Status</ks>: information about the state of the robot, the fan, the temperature of the parking-area, the car waiting for entering/exiting the parking-area and if the parking-solots are free or occupied;</li>
             <li><ks>Token</ks>: a unique identifier of the couple car - parking-slot, inside the parking-area, given to the client to exit car from parking-area;</li>
@@ -300,6 +301,160 @@ div.imagedesc{
                             <span>Reserved areas by devices and parkign slots</span>
                         </div>
                     </td>
+                </tbody>
+            </table>
+            <div style="margin-top: 1rem;">
+                Map specifications given by the customer:
+                <ul>
+                    <li><strong>Home</strong>: in the cell (0, 0)</li>
+                    <li><strong>Parking area</strong>: in the cells (2, 1), (3, 1), (2, 2), (3, 2), (2, 3), (3, 3)</li>
+                    <li><strong>Indoor area</strong>: in the cell (6, 0)</li>
+                    <li><strong>Outdoor area</strong>: in the cell (6, 4)</li>
+                </ul>
+                The docuemt given by the customer specify that the robot cannot wal over the parking area.<br/>
+                A support can be given by the utility <a target="_blank" href="https://github.com/anatali/issLab2021/blob/main/it.unibo.kotlinSupports/app/src/main/kotlin/mapRoomKotlin/mapUtil.kt"><em>mapUtil.kt</em></a> produced by the customer. It creats a room map as a singleton, there are methods like <bc>doMove(move : String)</bc>, <bc>getMapAndClean()</bc> and <bc>showMap()</bc> to work with map.
+            </div>
+            <div style="margin-top: 1rem;">
+                Devices specifications given by the customer:
+                <ul>
+                    <li><strong>Trolley</strong>: it is a DDR Robot and the customer also includes the software <a target="_blank" href="https://github.com/anatali/issLab2021/tree/main/it.unibo.qak21.basicrobot"><em>it.unibo.qak21.basicrobot</em></a></li>
+                    <li><strong>Fan</strong>: There is a software given by the customer that turn on or turn off a led connected to Raspberry. Since we haven't a Raspberry we have to adapt the code to a virtual device.</li>
+                    <li><strong>Thermometer</strong>: There is no software to given by the customer. Self managed.</li>
+                    <li><strong>Weightsensor</strong>: There is no software to given by the customer. Self managed.</li>
+                    <li><strong>Outsonar</strong>: There is a software given by the customer that read the distance from a physical sonar connected to Raspberry. Since we haven't a Raspberry we have to adapt the code to a virtual device.</li>
+                </ul>
+                The docuemt given by the customer specify that the robot cannot walk over the parking area.
+            </div>
+        </div>
+        <div style="margin-top: 1rem;">
+            <h3>Use case</h3>
+            Use case diagram based on the stories provided by the customer.
+            <table style="margin-top: 1rem; width: 100%;">
+                <tbody>
+                    <tr>
+                        <td>
+                            <div style="display: flex; flex-direction: column; align-items: center">
+                                <img src="./img/UseCase.jpg" style="margin: 1rem;">
+                                <span>Use case</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <tbody>
+                    <tr>
+                        <td style="width: 50%">
+                            <!-- USER -->
+                            <h4>User Actor</h4>
+                            <!-- ENTER CAR -->
+                            <h5>Enter Car</h5>
+                            <span>
+                                <p>
+                                    <ks>Main Scenario</ks><br/>
+                                    In the main scenario the user sends the slotnum previously received to the service.
+                                    It waits for a notification from the system that says the indoor-area is free within a certain period of time (ITOCC).
+                                    If the indoor-area it's free, user can drive the car to this area and leave it. Pressing the ENTER CAR button, the system
+                                    check the real presence of the car using the weight sensor and emit a unique token to pick-up the car from the outdoor-area.
+                                    The trolley moves the car from the indoor area to the selected parking-slot.
+                                    <br/><ks>Alternative Sceneries</ks><br/>
+                                    There are four alternative sceneries.
+                                    <ol>
+                                        <li>
+                                            In the first one the user doesn't move the car into the indoor area whitin a certain period of time. So the user loses the right to park the car and receive a notification. System release the parking slot.
+                                        </li>
+                                        <li>
+                                            In the second one the user enters the car into the indoor-area but doesn't press the ENTER CAR button in a certain period of time. User receive the unique token and the trolley parks the car.
+                                        </li>
+                                        <li>
+                                            In the third one the user doesn't enter the car inside the indoor-area and press ENTER CAR butto. The systems checks that the area is empty and sends a notification to the user saying the car must be inside the indoor-area.
+                                        </li>
+                                        <li>
+                                            In the fourth scenario, the indoor-area is already engaged the system asks the client for waiting. When the area is free, system sends a notification to the client for entering the car. Continue from main scenario.
+                                        </li>
+                                    </ol>
+                                </p>
+                            </span>
+                            <!-- PICK-UP CAR -->
+                            <h5>Pick-up Car</h5>
+                            <span>
+                                <p>
+                                    <ks>Main Scenario</ks><br/>
+                                    The client can pick-up the car from the outdoor-area in a fixed period of time (DTFREE).
+                                    <br/><ks>Alternative Scenario</ks><br/>
+                                    The client doesn't pick-up the car in a fixed period of time, a notification is sent to the manager that provide to free the area. A notification is sent to the user.
+                                </p>
+                            </span>
+                            <!-- NOTIFY INTEREST-->
+                            <h5>Notify Interest</h5>
+                            <span>
+                                <p>
+                                    <ks>Main Scenario</ks><br/>
+                                    The user notify the system the interest of entering his car inside parking area adding some useful information to the request. User receive a message containing the slotnum that is not null and higer than zero and represent a cell inside the parking area.
+                                    <br/><ks>Alternative Scenario</ks><br/>
+                                    The slotnum is zero meaning the parking area is full and the user cannot enter his car.
+                                </p>
+                            </span>
+                            <!-- SUBMIT TOKEN -->
+                            <h5>Submit Token</h5>
+                            <span>
+                                <p>
+                                    <ks>Main Scenario</ks><br/>
+                                    System check the existance of token given by the user and get the relative slotnum. The system also check the outdoor-area is free and notify the user to wait his car at the outdoor-area. The trolley moves the car from parking slot to outdoor-area and notify the user to pick-up his car. 
+                                    <br/><ks>Alternative Sceneries</ks><br/>
+                                    There are two alternative sceneries:
+                                    <ol>
+                                        <li>
+                                            In the first one the token entered by the user doesn't exists. System asks for a valid token.
+                                        </li>
+                                        <li>
+                                            In the second scenario the outdoor is occupied by another car. The system notify the user to wait. When outdoot is free continue from main scenario.
+                                        </li>
+                                    </ol>
+                                </p>
+                            </span>
+                        </td>
+                        <!-- MANAGER -->
+                        <td>
+                            <h4>Manager Actor</h4>
+                            <!-- TROLLEY -->
+                            <h5>Start Trolley</h5>
+                            <p>
+                                <ks>Main Scenario</ks><br/>
+                                The trolley is managed by the customer, it is resumed to continue to serve the current request or to start a new one or go back to home position.
+                            </p>
+                            <h5>Stop Trolley</h5>
+                            <p>
+                                <ks>Main Scenario</ks><br/>
+                                The trolley is stopped by the manager.
+                            </p>
+                            <!-- FAN -->
+                            <h5>Start Fan</h5>
+                            <p>
+                                <ks>Main Scenario</ks><br/>
+                                The fan can be started by the manager to decrease the temperature inside the parking area. This use case can be automated.
+                            </p>
+                            <h5>Stop Fan</h5>
+                            <p>
+                                <ks>Main Scenario</ks><br/>
+                                The manager stop the fan.
+                            </p>
+                            <!-- OBSERVE STATE -->
+                            <h5>Observe State</h5>
+                            <p>
+                                <ks>Main Scenario</ks><br/>
+                                The current system's status is shown to the manager.
+                            </p>
+                            <!-- IDENTIFICATION -->
+                            <h5>Identification</h5>
+                            <p>
+                                <ks>Main Scenario</ks><br/>
+                                The manager enter the credential to access the system. If the credentials are correct the system redirect manager to the home page.
+                                <br/><ks>Alternative Scenario</ks><br/>
+                                The credential aren't correct, the system notify it and shows the login screen again.
+                            </p>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
