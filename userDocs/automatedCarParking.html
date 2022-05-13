@@ -458,6 +458,48 @@ div.imagedesc{
                 </tbody>
             </table>
         </div>
+        <div style="margin-top: 1rem;">
+            <h3>Trolley Tasks</h3>
+            Based on use case and possible sceneries we can define six main tasks performed by the trolley.
+            <table>
+                <tbody>
+                    <tr>
+                        <td style="width: 50%">
+                           <h5>Move to indoor-area</h5>
+                           <p>
+                               <ks>moveToIndoor</ks><br/>
+                               It refers to car enter use case and this task is used by the system for moving the trolley to indoor-area in order to pick-up car and park it. The robot can be in all free cells of the parking-map.
+                            </p>
+
+                            <h5>Move to slot parking in</h5>
+                            <p>
+                                <ks>moveToSlotIn</ks><br/>
+                                It refers to car enter use case and this task is used by the system for parking a car into a specific parking-slot, starting from the indoor-area.
+                            </p>
+
+                            <h5>Move to home</h5>
+                            <p>
+                                <ks>moveToHome</ks><br/>
+                                It refers to car enter use case and submit token use case. This task is used by the system for moving the transport trolley to the home, also after a parking is completed.
+                            </p>
+                        </td>
+                        <td>
+                            <h5>Move to outdoor-area</h5>
+                            <p>
+                                <ks>moveToOutdoor</ks><br/>
+                                It refers to car enter use case and this task is used by the system for trasporting a car to the outdoor-area starting from cells aside parking slot.
+                            </p>
+
+                            <h5>Move to slot parking out</h5>
+                            <p>
+                                <ks>moveToSlotOut</ks><br/>
+                                It refers to submit token use case and this task is used by the system for picking-up a car in order to transport it to the outdoor-area. The robot can be in all free cells of the parking-map.
+                            </p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
