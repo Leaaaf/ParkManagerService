@@ -1,4 +1,4 @@
-package it.unibo.parkingmanagerservice.persistance.user
+package it.unibo.parkingmanagerservice.repository.user
 
 import it.unibo.parkingmanagerservice.entity.user.User
 import it.unibo.parkingmanagerservice.entity.user.UserState
@@ -10,13 +10,15 @@ class UserRepository : IUserRepository {
 	private val userMap = mutableMapOf<Long, User>()
 	
 	@Throws(SQLException::class)
-	override fun create(user : User) {
+	override fun create(user : User) : User? {
 		if (userMap.values.filter({ it.email.equals(user.email) }).firstOrNull() != null) {
 			throw SQLException("Email already exists.")
 		}
 		
 		user.id = idSequence.getAndIncrement()		
 		userMap.put(user.id, user)
+		
+		return userMap.get(user.id)
 	}
 	
 	override fun update(user : User) {

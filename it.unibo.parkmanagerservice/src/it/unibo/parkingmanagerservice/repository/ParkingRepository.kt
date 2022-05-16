@@ -1,9 +1,9 @@
-package it.unibo.parkingmanagerservice.persistance
+package it.unibo.parkingmanagerservice.repository
 
-import it.unibo.parkingmanagerservice.persistance.user.IUserRepository
-import it.unibo.parkingmanagerservice.persistance.parkingslot.IParkingSlotRepository
-import it.unibo.parkingmanagerservice.persistance.user.UserRepository
-import it.unibo.parkingmanagerservice.persistance.parkingslot.ParkingSlotRepository
+import it.unibo.parkingmanagerservice.repository.user.IUserRepository
+import it.unibo.parkingmanagerservice.repository.parkingslot.IParkingSlotRepository
+import it.unibo.parkingmanagerservice.repository.user.UserRepository
+import it.unibo.parkingmanagerservice.repository.parkingslot.ParkingSlotRepository
 import it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlot
 import it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlotState
 

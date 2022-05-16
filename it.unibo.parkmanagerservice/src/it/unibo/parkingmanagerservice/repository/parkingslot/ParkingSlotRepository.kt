@@ -1,4 +1,4 @@
-package it.unibo.parkingmanagerservice.persistance.parkingslot
+package it.unibo.parkingmanagerservice.repository.parkingslot
 
 import it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlot
 import it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlotState

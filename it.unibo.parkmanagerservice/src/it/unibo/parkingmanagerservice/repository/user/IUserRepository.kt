@@ -1,11 +1,11 @@
-package it.unibo.parkingmanagerservice.persistance.user
+package it.unibo.parkingmanagerservice.repository.user
 
 import it.unibo.parkingmanagerservice.entity.user.User
 import it.unibo.parkingmanagerservice.entity.user.UserState
 
 interface IUserRepository {
 	// CUD
-	fun create(user : User)
+	fun create(user : User) : User?
 	fun update(user : User)
 	fun delete(id : Long)
 	

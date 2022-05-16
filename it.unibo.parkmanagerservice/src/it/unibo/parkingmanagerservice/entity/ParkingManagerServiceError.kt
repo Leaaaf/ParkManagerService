@@ -5,3 +5,8 @@ enum class Error {
 	NO_RESERVATION, NO_USER_AT_DOOR, NO_DOOR_RESERVED,
 	INVALID_TOKEN, INVALID_SLOTNUM
 }
+
+data class ParkManagerServiceError (
+	val error : Error,
+	val msg : String
+) {}

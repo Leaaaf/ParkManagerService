@@ -7,7 +7,7 @@ import org.json.JSONObject
 import java.util.Optional
 
 data class User (
-	var id : Long,
+	var id : Long = 0,
 	var email : String,
 	var state : UserState,
 	var token : String? = null,
