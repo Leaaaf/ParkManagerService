@@ -1,72 +1,59 @@
 System carparking
 
-Dispatch updatefan : updatefan(X) 
-Event measureweight : measureweight(X)
-Event measuretemperature : measuretemperature(X)
-Event measuredistance : measuredistance(X)
+// Devices
+Dispatch dopolling : dopolling(X)
+Dispatch stoppolling : stoppolling(X)
+Dispatch fanon : fanon(X)
+Dispatch fanoff : fanoff(X) 
+Event weighton : weighton(X)
+Event weightoff : weightoff(X)
+Event outsonaron : outsonaron(X)
+Event outsonaroff : outsonaroff(X)
+Event criticaltemp : criticaltemp(X)
 
-Dispatch notifyuser : notifyuser(MSG)
-
-// Trolley msg
+// Trolley
 Dispatch parkcar : parkcar(SLOTNUM)
 Dispatch pickupcar : pickupcar(SLOTNUM)
 Dispatch stoptrolley : stoptrolley(X)
 Dispatch resumetrolley : resumetrolley(X)
 
-// BasicRobot msg
+// Basicrobot
 Dispatch cmd : cmd(MOVE) 
 Request step : step( TIME )	
 Reply stepdone : stepdone(V)
 Reply stepfail : stepfail(DURATION, CAUSE)
 
+// Counters
+Dispatch startdtfree : startdtfree(X)
+Dispatch startitocc : startitocc(X)
+Dispatch stopcount : stopcount(X)
+Event dtfreereached : dtfreereached(X)
+Event itoccreached : itoccreached(X)
 
+// Enter car
+Request enter : enter(EMAIL)
+Request slotnum : slotnum(SLOTNUM)
+Request entercar : entercar(SLOTNUM, MAIL)
+Reply token : token(TOKEN)
+// Pick-up car
+Request pickup : pickup(TOKEN, MAIL)
+Reply canpickup : canpickup(X)
+
+// Notify
+Dispatch notifyuser : notifyuser(X)
+
+// Ctx carparking
 Context ctxcarparking ip [host="localhost" port=8000]
-
+// Ctx devices
 Context ctxfan ip [host="localhost" port=8001]
 Context ctxweightsensor ip [host="localhost" port=8002]
 Context ctxthermometer ip [host="localhost" port=8003]
 Context ctxoutsonarsensor ip [host="localhost" port=8004]
-
+// Ctx basicrobot
 Context ctxbasicrobot ip [host="localhost" port=8020]
 
 ExternalQActor fanactor context ctxfan
 ExternalQActor weightsensoractor context ctxweightsensor
 ExternalQActor thermometeractor context ctxthermometer
 ExternalQActor outsonaractor context ctxoutsonarsensor
-
 ExternalQActor basicrobot context ctxbasicrobot
-
-QActor parkingmanagerservice context ctxcarparking {
-	
-	State s0 initial {
-		println("PARK MANAGER SERVICE | Started...")
-	}
-	Goto work
-	
-	State work {
-		println("PARK MANAGER SERVICE | Waiting for requests...")
-	}
-	Transition t0 whenEvent measureweight -> handleIndoor
-	
-	State handleIndoor {
-		println("PARK MANAGER SERVICE | Handling indoor...")
-	}
-	Goto work
-}
-
-QActor notifyactor context ctxcarparking {
-	State s0 initial {
-		println("NOTIFY | Started...")
-	}
-	Goto work
-	
-	State work {
-		println("NOTIFY | Waiting for requests...")
-	}
-	Transition t0 whenMsg notifyuser -> handleNotification
-	
-	State handleNotification {
-		
-	}
-	Goto work
-}
