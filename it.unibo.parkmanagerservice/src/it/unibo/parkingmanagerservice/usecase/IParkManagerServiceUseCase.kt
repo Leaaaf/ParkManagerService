@@ -12,9 +12,9 @@ interface IParkManagerServiceUseCase {
 	fun deleteUser(user : User)
 	fun setSlotToUser(user : User) : Long
 	fun putUserReserveDoorQueue(user : User, doorType : DoorType)
-	fun getReserveDoorQueue(doorType: DoorType) : IDoorQueueRepository
+	fun getReserveDoorQueue(doorType : DoorType) : IDoorQueueRepository
 	fun getDoorManager() : IDoorManagerRepository
-	fun reserveDoor(doorType: DoorType) : User?
+	fun reserveDoor(doorType : DoorType) : User?
 	fun setDoorOccupied(doorType : DoorType) : User?
 	fun setDoorFree(doorType : DoorType)
 	fun setSlotFree() : Pair<User?, ParkingSlot?>

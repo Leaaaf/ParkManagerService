@@ -5,6 +5,6 @@ import java.util.Optional
 
 data class ParkingSlot (
 	val id : Long,
-	val state : ParkingSlotState,
+	var state : ParkingSlotState,
 	var user : User?
 )
