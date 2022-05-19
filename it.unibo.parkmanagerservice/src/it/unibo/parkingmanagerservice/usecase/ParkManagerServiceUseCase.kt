@@ -1,7 +1,5 @@
 package it.unibo.parkingmanagerservice.usecase
 
-import it.unibo.parkingmanagerservice.repository.user.UserRepository
-import it.unibo.parkingmanagerservice.repository.parkingslot.ParkingSlotRepository
 import it.unibo.parkingmanagerservice.repository.door.IDoorQueueRepository
 import it.unibo.parkingmanagerservice.repository.door.IDoorManagerRepository
 import it.unibo.parkingmanagerservice.entity.user.User
@@ -14,21 +12,41 @@ import it.unibo.parkingmanagerservice.entity.door.DoorState
 import it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlotState
 import it.unibo.parkingmanagerservice.entity.Error
 import it.unibo.parkingmanagerservice.utility.token.ITokenGenerator
+import java.lang.IllegalStateException
+import it.unibo.parkingmanagerservice.repository.user.IUserRepository
+import it.unibo.parkingmanagerservice.repository.parkingslot.IParkingSlotRepository
 
-class ParkManagerServiceUseCase (
-	userRepository : UserRepository,
-	parkingSlotRepository : ParkingSlotRepository,
-	indoorQueueRepository : IDoorQueueRepository,
-	outdoorQueueRepository : IDoorQueueRepository,
-	doorManagerRepository : IDoorManagerRepository
-) : IParkManagerServiceUseCase {
-	
+class ParkManagerServiceUseCase (userRepository : IUserRepository, parkingSlotRepository : IParkingSlotRepository,
+		indoorQueueRepository : IDoorQueueRepository, outdoorQueueRepository : IDoorQueueRepository,
+		doorManagerRepository : IDoorManagerRepository) : IParkManagerServiceUseCase {
+
 	private val userRepository = userRepository
 	private val parkingSlotRepository = parkingSlotRepository
 	private val indoorQueueRepository = Pair<DoorType, IDoorQueueRepository>(DoorType.INDOOR, indoorQueueRepository)
 	private val outdoorQueueRepository = Pair<DoorType, IDoorQueueRepository>(DoorType.OUTDOOR, outdoorQueueRepository)
 	private val doorManagerRepository = doorManagerRepository
 	private val tokenGenerator = ITokenGenerator.get()
+	
+	companion object {
+		@JvmStatic private var parkManagerServiceUseCase : IParkManagerServiceUseCase? = null
+
+		@JvmStatic fun create(userRepository : IUserRepository,
+							  parkingSlotRepository : IParkingSlotRepository,
+							  indoorQueueRepository : IDoorQueueRepository,
+							  outdoorQueueRepository : IDoorQueueRepository,
+							  doorManagerRepository : IDoorManagerRepository) {
+			
+			parkManagerServiceUseCase = ParkManagerServiceUseCase(userRepository, parkingSlotRepository,
+					indoorQueueRepository, outdoorQueueRepository, doorManagerRepository)
+		}
+		
+		@JvmStatic fun get() : IParkManagerServiceUseCase {
+			if (null == parkManagerServiceUseCase) {
+				throw IllegalStateException("ParkManagerServiceUseCase | Create ParkManagerServiceUseCase first.")
+			}
+			return parkManagerServiceUseCase!!
+		}
+	}
 	
 	@Throws(SQLException::class)
 	override fun createUser(email : String) : User? {
