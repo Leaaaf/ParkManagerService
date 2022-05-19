@@ -57,3 +57,39 @@ ExternalQActor weightsensoractor context ctxweightsensor
 ExternalQActor thermometeractor context ctxthermometer
 ExternalQActor outsonaractor context ctxoutsonarsensor
 ExternalQActor basicrobot context ctxbasicrobot
+
+QActor parkingmanagerservice context ctxcarparking {
+	[#
+		it.unibo.parkingmanagerservice.repository.ParkingRepository.createParking(6)
+		it.unibo.parkingmanagerservice.usecase.ParkManagerServiceUseCase.create(
+			it.unibo.parkingmanagerservice.repository.ParkingRepository.getUserRepository(),
+			it.unibo.parkingmanagerservice.repository.ParkingRepository.getParkingSlotRepository(),
+			it.unibo.parkingmanagerservice.repository.ParkingRepository.getIndoorQueueRepository(),
+			it.unibo.parkingmanagerservice.repository.ParkingRepository.getOutdoorQueueRepository(),
+			it.unibo.parkingmanagerservice.repository.ParkingRepository.getDoorManagerRepository()
+		)
+		
+		val MANAGER = it.unibo.parkingmanagerservice.usecase.ParkManagerServiceUseCase.get()
+		
+	#]
+	
+	State s0 initial {
+		println("$name | Started")
+		updateResource[# "{\"door\": \"indoor\", \"state\": \"FREE\"}" #]
+		updateResource[# "{\"door\": \"outdoor\", \"state\": \"FREE\"}" #]
+	} Goto work
+	
+	State work {
+		println("$name | Waiting for request...")
+	}
+}
+
+
+
+
+
+
+
+
+
+

@@ -16,10 +16,32 @@ class Parkingmanagerservice ( name: String, scope: CoroutineScope  ) : ActorBasi
 	@kotlinx.coroutines.ObsoleteCoroutinesApi
 	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+				it.unibo.parkingmanagerservice.repository.ParkingRepository.createParking(6)
+				it.unibo.parkingmanagerservice.usecase.ParkManagerServiceUseCase.create(
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getUserRepository(),
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getParkingSlotRepository(),
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getIndoorQueueRepository(),
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getOutdoorQueueRepository(),
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getDoorManagerRepository()
+				)
+				
+				val MANAGER = it.unibo.parkingmanagerservice.usecase.ParkManagerServiceUseCase.get()
+				
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						println("PARK MANAGER SERVICE | Started...")
+						println("$name | Started")
+						updateResourceRep( "{\"door\": \"indoor\", \"state\": \"FREE\"}"  
+						)
+						updateResourceRep( "{\"door\": \"outdoor\", \"state\": \"FREE\"}"  
+						)
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("work") { //this:State
+					action { //it:State
+						println("$name | Waiting for request...")
 					}
 				}	 
 			}
