@@ -6,7 +6,7 @@ enum class Error {
 	INVALID_TOKEN, INVALID_SLOTNUM
 }
 
-data class ParkManagerServiceError (
+data class ParkingManagerServiceError (
 	val error : Error,
 	val msg : String
 ) {}
