@@ -185,13 +185,13 @@ QActor itoccactor context ctxcarparking {
 	#]
 	
 	State s0 initial {
-		println("$name | started")
+		println("$name | Started...")
 	} Goto work
 	
 	State work {
 		[# 
 			if(REACHED) {
-			REACHED = false
+				REACHED = false
 		#]
 			updateResource [# "reached"#]
 		[# } else { #]
@@ -215,10 +215,93 @@ QActor itoccactor context ctxcarparking {
 		emit itoccreached : itoccreached(REACHED)
 		updateResource[# "reached" #]
 	} Goto work
-} 
+}
 
+QActor dtfreeactor context ctxcarparking {
+	[#
+		val DTFREE = it.unibo.parkingmanagerservice.entity.timer.Timer.get().DTFREE
+		var REACHED = false
+	#]
+	
+	State s0 initial {
+		println("$name | Started...")
+	} Goto work
+	
+	State work {
+		[# 
+			if(REACHED) {
+				REACHED = false
+		#]
+			updateResource [# "reached"#]
+		[# } else { #]
+			updateResource [# "work"#]
+		[# } #]
+		println("$name | Waiting for command")
+	} Transition t
+		whenMsg startdtfree -> count
+		whenMsg stopcount -> work
+		
+	State count {
+		println("$name | Start DTFREE count...")
+		updateResource[# "count" #]
+	} Transition t
+		whenTimeVar DTFREE -> reached
+		whenMsg startdtfree -> count
+		whenMsg stopcount -> work
+	
+	State reached {
+		println("$name | DTFREE reached")
+		emit dtfreereached : dtfreereached(REACHED)
+		updateResource[# "reached" #]
+	} Goto work
+}
 
+QActor parkingservicestatusguiactor context ctxcarparking {
+	State s0 initial {
+		println("$name | Started...")
+	} Goto work
+	
+	State work {
+		println("$name | Working...")
+	} Transition t
+		whenEvent dtfreereached -> dtfreealarm
+	
+	State dtfreealarm {
+		println("$name | Notification sent to manager: DTFREE reached")
+	} Goto work
+}
 
+QActor temperatureactor context ctxcarparking {
+	[# var type : String #]
+	
+	State s0 initial {
+		println("$name | Started...")
+	} Goto work
+	
+	State work {
+		println("$name | Working...")
+	} Transition t
+		whenEvent criticaltemp -> handlecriticaltemp
+		
+	State handlecriticaltemp {
+		onMsg (criticaltemp : criticaltemp(X)) {
+			[#
+				type = payloadArg(0)
+				if (type.toUpperCase().equals("CRITICAL")) {
+			#]
+				println("$name | Critical temp reached")
+				forward fanactor -m fanon : fanon(ON)
+			[#
+				} else if (type.toUpperCase().equals("NORMAL")) {	
+			#]
+				println("$name | Normal temp reached")
+				forward fanactor -m fanon : fanon(ON)
+			[#
+				}	
+			#]
+		}
+	} Goto work
+}
 
 
 

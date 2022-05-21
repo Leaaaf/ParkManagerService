@@ -14,3 +14,6 @@ context(ctxbasicrobot, "localhost",  "TCP", "8020").
   qactor( basicrobot, ctxbasicrobot, "external").
   qactor( parkingmanagerservice, ctxcarparking, "it.unibo.parkingmanagerservice.Parkingmanagerservice").
   qactor( itoccactor, ctxcarparking, "it.unibo.itoccactor.Itoccactor").
+  qactor( dtfreeactor, ctxcarparking, "it.unibo.dtfreeactor.Dtfreeactor").
+  qactor( parkingservicestatusguiactor, ctxcarparking, "it.unibo.parkingservicestatusguiactor.Parkingservicestatusguiactor").
+  qactor( temperatureactor, ctxcarparking, "it.unibo.temperatureactor.Temperatureactor").
