@@ -17,3 +17,4 @@ context(ctxbasicrobot, "localhost",  "TCP", "8020").
   qactor( dtfreeactor, ctxcarparking, "it.unibo.dtfreeactor.Dtfreeactor").
   qactor( parkingservicestatusguiactor, ctxcarparking, "it.unibo.parkingservicestatusguiactor.Parkingservicestatusguiactor").
   qactor( temperatureactor, ctxcarparking, "it.unibo.temperatureactor.Temperatureactor").
+  qactor( trolleyactor, ctxcarparking, "it.unibo.trolleyactor.Trolleyactor").

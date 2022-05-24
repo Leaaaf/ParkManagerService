@@ -106,7 +106,7 @@ class Parkingmanagerservice ( name: String, scope: CoroutineScope  ) : ActorBasi
 								forward("startitocc", "startitocc(START)" ,"itoccactor" ) 
 								 
 														} else {
-															PAYLOAD = "{\"slotnum\": \"$SLOTNUM\", \"indoor\": \"OCCUPIED\"}"
+															PAYLOAD = "{\"slotnum\": \"${SLOTNUM}\", \"indoor\": \"OCCUPIED\"}"
 														}
 													}
 												} catch (e : java.sql.SQLException) {
@@ -116,18 +116,67 @@ class Parkingmanagerservice ( name: String, scope: CoroutineScope  ) : ActorBasi
 						println("$name | Reply with slotnum: ${PAYLOAD!!}")
 						answer("enter", "slotnum", "slotnum($PAYLOAD)"   )  
 					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("handleEnterCar") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("entercar(SLOTNUM,MAIL)"), Term.createTerm("entercar(SLOTNUM,EMAIL)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+											USER_ERROR = MANAGER.setTokenUserIndoor(payloadArg(0), payloadArg(1))
+											if (null != USER_ERROR.first && null == USER_ERROR.second) {
+												PAYLOAD = "{\"token\": \"${USER_ERROR.first!!.token!!.toString()}\"}"
+								forward("stopcount", "stopcount(STOP)" ,"itoccactor" ) 
+								forward("parkcar", "parkcar($SLOTNUM)" ,"trolleyactor" ) 
+								updateResourceRep( "{\"slotnum\": \"${SLOTNUM}\", \"user\": \"${USER_ERROR.first!!.email}\", \"state\": \"OCCUPIED\"}"  
+								)
+								 
+											} else PAYLOAD = "{\"error\": \"${USER_ERROR!!.second!!.msg}\"}"
+								println("$name | Reply to ENTERCAR with $PAYLOAD")
+								answer("entercar", "token", "token($PAYLOAD)"   )  
+								updateResourceRep( "Reply to ENTERCAR with $PAYLOAD"  
+								)
+						}
 					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("handlePickup") { //this:State
 					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("pickup(TOKEN,MAIL)"), Term.createTerm("pickup(TOKEN,EMAIL)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												PARKING_SLOT_ERROR = MANAGER.validateToken(payloadArg(0), payloadArg(1))
+												if (null != PARKING_SLOT_ERROR.first && null == PARKING_SLOT_ERROR.second) {
+													SLOTNUM = PARKING_SLOT_ERROR.first!!.id
+													MANAGER.putUserReserveDoorQueue(PARKING_SLOT_ERROR.first!!.user!!, OUTDOOR)
+													if (null != MANAGER.reserveDoor(OUTDOOR)) {
+														PAYLOAD = "{\"msg\": \"The transport trolley will transport your car to the outdoor: you will get a notification when your car is ready. Plase stay near the ourdoor\"}"
+								updateResourceRep( "{\"slot\": \"${SLOTNUM}\", \"user\": \"${PARKING_SLOT_ERROR.first!!.user!!.email}\", \"state\": \"RELEASE\"}"  
+								)
+								forward("startdtfree", "startdtfree($OUTDOOR_POLLING)" ,"dtfreeactor" ) 
+											
+													} else
+														PAYLOAD = "{\"msg\": \"The outdoor is already engaged. When possible, the trolley will transport your car to the outdoor. You will be notified as soon.\"}"
+												} else
+													PAYLOAD = "{\"msg\": \"$PARKING_SLOT_ERROR.second!!\"}"
+								println("$name | Reply with canpickup(${PAYLOAD!!})")
+								answer("pickup", "canpickup", "canpickup($PAYLOAD)"   )  
+								updateResourceRep( "canpickup($PAYLOAD)"  
+								)
+						}
 					}
 				}	 
 				state("handleIndoorOccupied") { //this:State
 					action { //it:State
+						forward("stopcount", "stopcount(STOP)" ,"itoccactor" ) 
+						
+									USER = MANAGER.setDoorOccupied(INDOOR)!!	
+						updateResourceRep( "{\"door\": \"indoor\", \"state\": \"OCCUPIED\"}"  
+						)
 					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("handleIndoorFree") { //this:State
 					action { //it:State
@@ -135,7 +184,22 @@ class Parkingmanagerservice ( name: String, scope: CoroutineScope  ) : ActorBasi
 				}	 
 				state("handleOutdoorOccupied") { //this:State
 					action { //it:State
+						
+									MANAGER.setDoorOccupied(OUTDOOR)!!
+									USER_SLOT = MANAGER.setSlotFree()
+									USER = USER_SLOT.first	
+									
+									if (null != USER!!) {
+										// TODO: Send notification
+						forward("pickupcar", "pickupcar($SLOTNUM)" ,"trolleyactor" ) 
+						updateResourceRep( "{\"door\": \"outdoor\", \"state\": \"OCCUPIED\"}"  
+						)
+						updateResourceRep( "{\"slot\": \"${USER_SLOT.second!!.id}\", \"user\": \"${USER!!.email}\", \"state\": \"FREE\"}"  
+						)
+						
+									}
 					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("handleOutdoorFree") { //this:State
 					action { //it:State
