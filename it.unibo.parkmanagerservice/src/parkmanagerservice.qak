@@ -141,7 +141,7 @@ QActor parkingmanagerservice context ctxcarparking {
 							forward itoccactor -m startitocc : startitocc(START)
 					[# 
 						} else {
-							PAYLOAD = "{\"slotnum\": \"$SLOTNUM\", \"indoor\": \"OCCUPIED\"}"
+							PAYLOAD = "{\"slotnum\": \"${SLOTNUM}\", \"indoor\": \"OCCUPIED\"}"
 						}
 					}
 				} catch (e : java.sql.SQLException) {
@@ -151,27 +151,84 @@ QActor parkingmanagerservice context ctxcarparking {
 		}
 		println("$name | Reply with slotnum: ${PAYLOAD!!}")
 		replyTo enter with slotnum : slotnum($PAYLOAD)
-	}
+	} Goto work
 	
 	State handleEnterCar {
+		printCurrentMessage
+		onMsg (entercar : entercar(SLOTNUM, EMAIL)) {
+		[#
+			USER_ERROR = MANAGER.setTokenUserIndoor(payloadArg(0), payloadArg(1))
+			if (null != USER_ERROR.first && null == USER_ERROR.second) {
+				PAYLOAD = "{\"token\": \"${USER_ERROR.first!!.token!!.toString()}\"}"
+		#]
+				forward itoccactor -m stopcount : stopcount(STOP)
+				forward trolleyactor -m parkcar : parkcar($SLOTNUM)
+				updateResource[# "{\"slotnum\": \"${SLOTNUM}\", \"user\": \"${USER_ERROR.first!!.email}\", \"state\": \"OCCUPIED\"}" #]
+		[# 
+			} else PAYLOAD = "{\"error\": \"${USER_ERROR!!.second!!.msg}\"}"
+		#]	
 		
-	}
+		println("$name | Reply to ENTERCAR with $PAYLOAD")
+		replyTo entercar with token : token($PAYLOAD)
+		updateResource [# "Reply to ENTERCAR with $PAYLOAD" #]
+		
+		}
+	} Goto work
 	
 	State handlePickup {
-		
+		printCurrentMessage
+		onMsg (pickup : pickup(TOKEN, EMAIL)) {
+			[#
+				PARKING_SLOT_ERROR = MANAGER.validateToken(payloadArg(0), payloadArg(1))
+				if (null != PARKING_SLOT_ERROR.first && null == PARKING_SLOT_ERROR.second) {
+					SLOTNUM = PARKING_SLOT_ERROR.first!!.id
+					MANAGER.putUserReserveDoorQueue(PARKING_SLOT_ERROR.first!!.user!!, OUTDOOR)
+					if (null != MANAGER.reserveDoor(OUTDOOR)) {
+						PAYLOAD = "{\"msg\": \"The transport trolley will transport your car to the outdoor: you will get a notification when your car is ready. Plase stay near the ourdoor\"}"
+			#]
+						updateResource[# "{\"slot\": \"${SLOTNUM}\", \"user\": \"${PARKING_SLOT_ERROR.first!!.user!!.email}\", \"state\": \"RELEASE\"}" #]
+						forward dtfreeactor -m startdtfree : startdtfree($OUTDOOR_POLLING)
+			[#			
+					} else
+						PAYLOAD = "{\"msg\": \"The outdoor is already engaged. When possible, the trolley will transport your car to the outdoor. You will be notified as soon.\"}"
+				} else
+					PAYLOAD = "{\"msg\": \"$PARKING_SLOT_ERROR.second!!\"}"
+			#]
+			println("$name | Reply with canpickup(${PAYLOAD!!})")
+			replyTo pickup with canpickup : canpickup($PAYLOAD)
+			updateResource[# "canpickup($PAYLOAD)" #]
+		}
 	}
 	
 	State handleIndoorOccupied {
-		
-	}
+		forward itoccactor -m stopcount : stopcount(STOP)
+		[#
+			USER = MANAGER.setDoorOccupied(INDOOR)!!	
+		#]
+		updateResource[# "{\"door\": \"indoor\", \"state\": \"OCCUPIED\"}" #]
+	} Goto work
 	
 	State handleIndoorFree {
 		
 	}
 	
 	State handleOutdoorOccupied {
-		
-	}
+		[#
+			MANAGER.setDoorOccupied(OUTDOOR)!!
+			USER_SLOT = MANAGER.setSlotFree()
+			USER = USER_SLOT.first	
+			
+			if (null != USER!!) {
+				// TODO: Send notification
+		#]
+			// forward notificationactor -m notifyuser : notifyuser(NOTIFY)
+			forward trolleyactor -m pickupcar : pickupcar($SLOTNUM)
+			updateResource[# "{\"door\": \"outdoor\", \"state\": \"OCCUPIED\"}" #]
+			updateResource[# "{\"slot\": \"${USER_SLOT.second!!.id}\", \"user\": \"${USER!!.email}\", \"state\": \"FREE\"}" #]
+		[#
+			}
+		#]
+	} Goto work
 	
 	State handleOutdoorFree {
 		
@@ -303,7 +360,230 @@ QActor temperatureactor context ctxcarparking {
 	} Goto work
 }
 
+QActor trolleyactor context ctxcarparking {
+	[#
+		it.unibo.parkingmanagerservice.utility.MapLoader.loadMapFromTxt("resources/parking_map.txt")
+		val STEP_TIME = "340"
+		val PLANNER = itunibo.planner.plannerUtil
+		val PARKING_SLOT_MAP = it.unibo.parkingmanagerservice.repository.parkingslot.ParkingSlotMap
+		val DOOR_MAP = it.unibo.parkingmanagerservice.repository.door.DoorMap
+		val INDOOR = it.unibo.parkingmanagerservice.entity.door.DoorType.INDOOR
+		val OUTDOOR = it.unibo.parkingmanagerservice.entity.door.DoorType.OUTDOOR
+		val IN_POSITION = DOOR_MAP.getAdiacentAllowedPositionByDoorType(INDOOR)!!
+		val OUT_POSITION = DOOR_MAP.getAdiacentAllowedPositionByDoorType(OUTDOOR)!!
+		var DEST : Pair<Int, Int>? = null
+		var TRIP_BUILDER = it.unibo.parkingmanagerservice.utility.TripBuilder(IN_POSITION.first, IN_POSITION.second, OUT_POSITION.first, OUT_POSITION.second)
+		var TRIP : kotlin.collections.Iterator<it.unibo.parkingmanagerservice.entity.trolley.TripStage>? = null
+		var PLAN : kotlin.collections.Iterator<aima.core.agent.Action>? = null
+		var ACTION : aima.core.agent.Action? = null
+		var CURR_STAGE : it.unibo.parkingmanagerservice.entity.trolley.TripStage? = null
+		var CAN_GO = false
+		var STATE = it.unibo.parkingmanagerservice.entity.trolley.TrolleyState.IDLE
+		var INTERRUPT = false
+		var EXPECTED_DIRECTION : String? = null
+		var PAYLOAD = ""
+		
+		PLANNER.initAI()
+		PLANNER.showMap()
+	#]
+	
+	State s0 initial {
+		println("$name | Started...")
+	} Goto home
+	
+	State home {
+		println("$name | Home")
+		[#
+			TRIP = null
+			PLAN = null
+			CURR_STAGE = null
+			STATE = `it.unibo.parkingmanagerservice.entity.trolley`.TrolleyState.IDLE	
+			
+			PLANNER.showMap()
+			PAYLOAD = "{\"state\": \"${STATE}\", \"action\": \"${CURR_STAGE?.type}\", \"position\": {\"x\": \"${PLANNER.getPosX()}\", \"y\": \"${PLANNER.getPosY()}\"}}"
+		#]
+		updateResource[# PAYLOAD #]
+	} Transition t 
+		whenMsg parkcar -> handle
+		whenMsg pickupcar -> handle
+		whenMsg stoptrolley -> stop
+		
+	State handle {
+		[#
+			STATE = `it.unibo.parkingmanagerservice.entity.trolley`.TrolleyState.WORKING 
+			PAYLOAD = "{\"state\": \"${STATE}\", \"action\": \"${CURR_STAGE?.type}\", \"position\": {\"x\": \"${PLANNER.getPosX()}\", \"y\": \"${PLANNER.getPosY()}\"}}"
+			TRIP_BUILDER.clear()
+		#]
+		updateResource[# PAYLOAD #]
+		
+		onMsg (parkcar : parkcar(SLOTNUM)) {
+			println("$name | Received request to park the car at the indoor to the slot ${payloadArg(0)}")
+			[# 
+				DEST = PARKING_SLOT_MAP.getAdiacentAllowedPositionBySlotnum(payloadArg(0))
+				println("$name | Found slot at coordinates $DEST")
+				if(DEST != null) {
+					TRIP = TRIP_BUILDER.addParkTrip(DEST!!.first, DEST!!.second).build()
+				} else
+					println("$name | Unable to find a plan to go to the slot ${payloadArg(0)}")
+			#]
+		}
+		
+		onMsg (pickupcar : pickupcar(SLOTNUM)) {
+			println("$name | Received request to pickup the car at the slot ${payloadArg(0)}")
+			[# 
+				DEST = PARKING_SLOT_MAP.getAdiacentAllowedPositionBySlotnum(payloadArg(0))
+				println("$name | Found slot at coordinates $DEST")
+				if(DEST != null) {	
+					TRIP = TRIP_BUILDER.addPickupTrip(DEST!!.first, DEST!!.second).build()
+				} else
+					println("$name | Unable to find a plan to go to the slot ${payloadArg(0)}")
+			#]
+		}
+	} Goto nextstage if [# null != DEST #] else home
 
+	State nextstage {
+		[# 
+			CAN_GO = false
+			if(TRIP != null) {
+				while(TRIP!!.hasNext() && !CAN_GO) {
+					CURR_STAGE = TRIP!!.next()
+					println("$name ! CURRSTAGE = ${CURR_STAGE}")
+					INTERRUPT = false
+					
+					when(CURR_STAGE!!.type) {
+						`it.unibo.parkingmanagerservice.entity.trolley`.TripStageType.LOAD_CAR -> {
+							CAN_GO = true
+						}
+						`it.unibo.parkingmanagerservice.entity.trolley`.TripStageType.UNLOAD_CAR -> {
+							CAN_GO = true
+						}
+						else -> {
+							PLANNER.setGoal(CURR_STAGE!!.destination.first, CURR_STAGE!!.destination.second)
+							PLAN = PLANNER.doPlan()?.iterator()
+							if(PLAN != null) {
+								CAN_GO = true
+							}
+							if(CURR_STAGE!!.type == `it.unibo.parkingmanagerservice.entity.trolley`.TripStageType.MOVING_TO_HOME) {
+								INTERRUPT = true
+							} else {
+								INTERRUPT = false
+							}
+						}
+					}
+				}	
+			}
+		#]
+	} Goto checkstage if [# CAN_GO #] else home
+	
+	State checkstage {
+		println("$name | Check stage")
+	} Goto elevator if [# CURR_STAGE!!.type == `it.unibo.parkingmanagerservice.entity.trolley`.TripStageType.LOAD_CAR ||
+			CURR_STAGE!!.type == `it.unibo.parkingmanagerservice.entity.trolley`.TripStageType.UNLOAD_CAR #] else nextaction
+			
+	State elevator {
+		[# 
+			EXPECTED_DIRECTION = DOOR_MAP.getDirection(PLANNER.getPosX(), PLANNER.getPosY()) ?: PARKING_SLOT_MAP.getDirection(PLANNER.getPosX(), PLANNER.getPosY())
+			if(EXPECTED_DIRECTION != null) {
+				while(EXPECTED_DIRECTION != PLANNER.getDirection()) {
+					#] 
+						forward basicrobot -m cmd : cmd(l)
+						delay 500
+					[#
+						PLANNER.doMove("l")
+				}
+			}
+			
+			when(CURR_STAGE!!.type) {
+				`it.unibo.parkingmanagerservice.entity.trolley`.TripStageType.LOAD_CAR -> {
+					println("$name | Car will be loaded")
+					PLANNER.showMap()
+					PLANNER.resetActions()
+					PAYLOAD = "{\"state\": \"${STATE}\", \"action\": \"${CURR_STAGE!!.type}\", \"position\": {\"x\": \"${PLANNER.getPosX()}\", \"y\": \"${PLANNER.getPosY()}\"}}"
+					#] 
+						updateResource[# PAYLOAD #]
+						delay 3000
+					[#
+					println("$name | Car is loaded")
+				}
+				`it.unibo.parkingmanagerservice.entity.trolley`.TripStageType.UNLOAD_CAR-> {
+					println("$name | Car will be unloaded")
+					PLANNER.showMap()
+					PLANNER.resetActions()
+					PAYLOAD = "{\"state\": \"${STATE}\", \"action\": \"${CURR_STAGE!!.type}\", \"position\": {\"x\": \"${PLANNER.getPosX()}\", \"y\": \"${PLANNER.getPosY()}\"}}"
+					#] 
+						updateResource[# PAYLOAD #]
+						delay 3000
+					[#
+					println("$name | Car is unloaded")
+				}
+				else -> {}
+			}
+		#]
+	} Goto nextstage
+
+	State nextaction {
+		[#
+			CAN_GO = false
+			if (null != TRIP && PLAN!!.hasNext()) {
+				ACTION = PLAN!!.next()
+				
+				if (null != ACTION && !ACTION!!.isNoOp) {
+					CAN_GO = true
+				}
+			}	
+		#]
+	} Goto doaction if [# CAN_GO #] else nextstage
+	
+	State doaction {
+		[#
+			CAN_GO = false
+			if (ACTION.toString().equals("w")) {
+		#]
+			request basicrobot -m step : step($STEP_TIME)
+		[#
+			CAN_GO = true
+			} else {
+		#]
+			forward basicrobot -m cmd : cmd($ACTION)
+			delay 500
+		[#
+			PLANNER!!.doMove(ACTION.toString())
+			PAYLOAD = "{\"state\": \"${STATE}\", \"action\": \"${CURR_STAGE!!.type}\", \"position\": {\"x\": \"${PLANNER.getPosX()}\", \"y\": \"${PLANNER.getPosY()}\"}}"
+		#]
+			updateResource[# PAYLOAD #]
+		[#	
+			}
+		#]
+	} Goto waitstepdone if [# CAN_GO #] else nextaction
+	
+	State waitstepdone {
+		println("$name | Waiting step done...")
+	} Transition t
+		whenMsg stoptrolley -> stop
+		whenMsg parkcar and [# INTERRUPT #] -> handle
+		whenMsg pickupcar and [# INTERRUPT #] -> handle
+		whenReply stepdone -> handlestepdone
+		
+	State handlestepdone {
+		[#
+			PAYLOAD = "{\"state\": \"${STATE}\", \"action\": \"${CURR_STAGE!!.type}\", \"position\": {\"x\": \"${PLANNER.getPosX()}\", \"y\": \"${PLANNER.getPosY()}\"}}"
+		#]
+		updateResource[# PAYLOAD #]
+	} Goto nextaction
+
+	State stop {
+		onMsg (stepdone : stepdone(V)) {
+			[# PLANNER!!.doMove(ACTION.toString()) #]
+		} 
+		[#
+			STATE = `it.unibo.parkingmanagerservice.entity.trolley`.TrolleyState.STOPPED
+			PAYLOAD = "{\"state\": \"${STATE}\", \"action\": \"${CURR_STAGE?.type}\", \"position\": {\"x\":\"${PLANNER.getPosX()}\", \"y\": \"${PLANNER.getPosY()}\"}}"
+		#]
+		updateResource[# PAYLOAD #]
+	} Transition t
+		whenMsg resumetrolley -> nextaction
+		whenReply stepdone -> stop
+}
 
 
 
