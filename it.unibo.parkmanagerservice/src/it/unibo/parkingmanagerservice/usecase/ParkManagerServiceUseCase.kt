@@ -1,34 +1,52 @@
 package it.unibo.parkingmanagerservice.usecase
 
-import it.unibo.parkingmanagerservice.repository.user.UserRepository
-import it.unibo.parkingmanagerservice.repository.parkingslot.ParkingSlotRepository
 import it.unibo.parkingmanagerservice.repository.door.IDoorQueueRepository
 import it.unibo.parkingmanagerservice.repository.door.IDoorManagerRepository
 import it.unibo.parkingmanagerservice.entity.user.User
 import it.unibo.parkingmanagerservice.entity.door.DoorType
 import it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlot
-import it.unibo.parkingmanagerservice.entity.ParkManagerServiceError
+import it.unibo.parkingmanagerservice.entity.ParkingManagerServiceError
 import it.unibo.parkingmanagerservice.entity.user.UserState
 import java.sql.SQLException
 import it.unibo.parkingmanagerservice.entity.door.DoorState
 import it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlotState
 import it.unibo.parkingmanagerservice.entity.Error
 import it.unibo.parkingmanagerservice.utility.token.ITokenGenerator
+import java.lang.IllegalStateException
+import it.unibo.parkingmanagerservice.repository.user.IUserRepository
+import it.unibo.parkingmanagerservice.repository.parkingslot.IParkingSlotRepository
 
-class ParkManagerServiceUseCase (
-	userRepository : UserRepository,
-	parkingSlotRepository : ParkingSlotRepository,
-	indoorQueueRepository : IDoorQueueRepository,
-	outdoorQueueRepository : IDoorQueueRepository,
-	doorManagerRepository : IDoorManagerRepository
-) : IParkManagerServiceUseCase {
-	
+class ParkManagerServiceUseCase (userRepository : IUserRepository, parkingSlotRepository : IParkingSlotRepository,
+		indoorQueueRepository : IDoorQueueRepository, outdoorQueueRepository : IDoorQueueRepository,
+		doorManagerRepository : IDoorManagerRepository) : IParkManagerServiceUseCase {
+
 	private val userRepository = userRepository
 	private val parkingSlotRepository = parkingSlotRepository
 	private val indoorQueueRepository = Pair<DoorType, IDoorQueueRepository>(DoorType.INDOOR, indoorQueueRepository)
 	private val outdoorQueueRepository = Pair<DoorType, IDoorQueueRepository>(DoorType.OUTDOOR, outdoorQueueRepository)
 	private val doorManagerRepository = doorManagerRepository
 	private val tokenGenerator = ITokenGenerator.get()
+	
+	companion object {
+		@JvmStatic private var parkManagerServiceUseCase : IParkManagerServiceUseCase? = null
+
+		@JvmStatic fun create(userRepository : IUserRepository,
+							  parkingSlotRepository : IParkingSlotRepository,
+							  indoorQueueRepository : IDoorQueueRepository,
+							  outdoorQueueRepository : IDoorQueueRepository,
+							  doorManagerRepository : IDoorManagerRepository) {
+			
+			parkManagerServiceUseCase = ParkManagerServiceUseCase(userRepository, parkingSlotRepository,
+					indoorQueueRepository, outdoorQueueRepository, doorManagerRepository)
+		}
+		
+		@JvmStatic fun get() : IParkManagerServiceUseCase {
+			if (null == parkManagerServiceUseCase) {
+				throw IllegalStateException("ParkManagerServiceUseCase | Create ParkManagerServiceUseCase first.")
+			}
+			return parkManagerServiceUseCase!!
+		}
+	}
 	
 	@Throws(SQLException::class)
 	override fun createUser(email : String) : User? {
@@ -179,18 +197,18 @@ class ParkManagerServiceUseCase (
 		return null
 	}
 	
-	override fun setTokenUserIndoor(slotnum : String, email : String) : Pair<User?, ParkManagerServiceError?> {
+	override fun setTokenUserIndoor(slotnum : String, email : String) : Pair<User?, ParkingManagerServiceError?> {
 		val user = doorManagerRepository.getUserByDoorType(DoorType.INDOOR)
 		
 		if (null == user) {
 			println("ParkManagerServiceUseCase | setTokenUserIndoor | Unable to assign token: no user at indoor")
-			return Pair(null, ParkManagerServiceError(Error.NO_DOOR_RESERVED, "Indoor is not reserved. Please take a reservation."))
+			return Pair(null, ParkingManagerServiceError(Error.NO_DOOR_RESERVED, "Indoor is not reserved. Please take a reservation."))
 		}
 		
 		val parkingSlot = parkingSlotRepository.getReservedByUser(user.id)
 		if (null == parkingSlot) {
 			println("ParkManagerServiceUseCase | setTokenUserIndoor | Unable to assign token: user into the indoor has no slot reserved")
-			return Pair(null, ParkManagerServiceError(Error.NO_RESERVATION, "Parking slot is not reserved. Please take a reservation."))
+			return Pair(null, ParkingManagerServiceError(Error.NO_RESERVATION, "Parking slot is not reserved. Please take a reservation."))
 		}
 		
 		if (DoorState.OCCUPIED == doorManagerRepository.getState(DoorType.INDOOR)) {
@@ -202,32 +220,32 @@ class ParkManagerServiceUseCase (
 				return Pair(user, null)
 			}
 			println("ParkManagerServiceUseCase | setTokenUserIndoor | Invalid email or slotnum")
-			return Pair(user, ParkManagerServiceError(Error.INVALID_EMAIL, "Invalid email or slotnum. Please insert correct data."))	
+			return Pair(user, ParkingManagerServiceError(Error.INVALID_EMAIL, "Invalid email or slotnum. Please insert correct data."))	
 		}
 		
 		println("ParkManagerServiceUseCase | setTokenUserIndoor | Unable to assign token: ${user.email} car isn't at the indoor")
-		return Pair(user, ParkManagerServiceError(Error.NO_USER_AT_DOOR, "Please move the car to indoor before press ENTER CAR."))
+		return Pair(user, ParkingManagerServiceError(Error.NO_USER_AT_DOOR, "Please move the car to indoor before press ENTER CAR."))
 	}
 	
-	override fun validateToken(token : String, email : String) : Pair<ParkingSlot?, ParkManagerServiceError?> {
+	override fun validateToken(token : String, email : String) : Pair<ParkingSlot?, ParkingManagerServiceError?> {
 		val parkingSlot = parkingSlotRepository.getReservedByToken(token)
 		
 		if (null == parkingSlot) {
 			println("ParkManagerServiceUseCase | validateToken | Unable to find slot assigned to $email with token: $token")
-            return Pair(null, ParkManagerServiceError(Error.INVALID_TOKEN, "Invalid token. Please try again."))
+            return Pair(null, ParkingManagerServiceError(Error.INVALID_TOKEN, "Invalid token. Please try again."))
 		}
 		
 		val user = parkingSlot.user!!
 		
 		if (!user.email.equals(email)) {
 			println("ParkManagerServiceUseCase | validateToken | $email not valid")
-            return Pair(parkingSlot, ParkManagerServiceError(Error.INVALID_EMAIL, "Invalid email. Please try again."))
+            return Pair(parkingSlot, ParkingManagerServiceError(Error.INVALID_EMAIL, "Invalid email. Please try again."))
 		}
 		if (user.email.equals(email) && ParkingSlotState.RELEASE == parkingSlot.state) {
 			if (doorManagerRepository.getUserByDoorType(DoorType.OUTDOOR) == user)
-				return Pair(parkingSlot, ParkManagerServiceError(Error.INVALID_TOKEN, "Pick-up is already requested. Please move your car to outdoor."))
+				return Pair(parkingSlot, ParkingManagerServiceError(Error.INVALID_TOKEN, "Pick-up is already requested. Please move your car to outdoor."))
 			else
-				return Pair(parkingSlot, ParkManagerServiceError(Error.INVALID_TOKEN, "Pick-up is already requested and outdoor already engaged. Please wait."))
+				return Pair(parkingSlot, ParkingManagerServiceError(Error.INVALID_TOKEN, "Pick-up is already requested and outdoor already engaged. Please wait."))
 		}
 		
 		println("ParkManagerServiceUseCase | validateToken | Token OK")

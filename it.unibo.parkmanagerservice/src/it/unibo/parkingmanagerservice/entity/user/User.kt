@@ -15,10 +15,10 @@ data class User (
 ) {
 	companion object {
 		private var ADMIN : User? = null
-		private var FILE_PATH_CONFIG_ADMIN = "config/admin.json"
+		private var CONFIG_FILE_PATH = "config/admin.json"
 		
 		init {
-			val adminConfig = Paths.get(FILE_PATH_CONFIG_ADMIN)
+			val adminConfig = Paths.get(CONFIG_FILE_PATH)
 			if (!Files.exists(adminConfig)) {
 				println("ParkingManagerService | User | Unable to find admin file configuration ${adminConfig.toAbsolutePath()}")
 			} else {

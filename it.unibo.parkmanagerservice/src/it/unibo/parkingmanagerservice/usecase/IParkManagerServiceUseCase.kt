@@ -2,7 +2,7 @@ package it.unibo.parkingmanagerservice.usecase
 
 import it.unibo.parkingmanagerservice.entity.user.User
 import it.unibo.parkingmanagerservice.entity.door.DoorType
-import it.unibo.parkingmanagerservice.entity.ParkManagerServiceError
+import it.unibo.parkingmanagerservice.entity.ParkingManagerServiceError
 import it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlot
 import it.unibo.parkingmanagerservice.repository.door.IDoorQueueRepository
 import it.unibo.parkingmanagerservice.repository.door.IDoorManagerRepository
@@ -21,6 +21,6 @@ interface IParkManagerServiceUseCase {
 	fun getSlotReservedByUser(user : User) : ParkingSlot?
 	fun parkFromIndoor() : User?
 	fun leaveParkOutdoor() : User?
-	fun setTokenUserIndoor(token : String, email : String) : Pair<User?, ParkManagerServiceError?>
-	fun validateToken(token : String, email : String) : Pair<ParkingSlot?, ParkManagerServiceError?>
+	fun setTokenUserIndoor(token : String, email : String) : Pair<User?, ParkingManagerServiceError?>
+	fun validateToken(token : String, email : String) : Pair<ParkingSlot?, ParkingManagerServiceError?>
 }
