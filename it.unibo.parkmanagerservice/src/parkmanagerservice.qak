@@ -198,7 +198,7 @@ QActor parkingmanagerservice context ctxcarparking {
 			replyTo pickup with canpickup : canpickup($PAYLOAD)
 			updateResource[# "canpickup($PAYLOAD)" #]
 		}
-	}
+	} Goto work
 	
 	State handleIndoorOccupied {
 		forward itoccactor -m stopcount : stopcount(STOP)
@@ -209,8 +209,14 @@ QActor parkingmanagerservice context ctxcarparking {
 	} Goto work
 	
 	State handleIndoorFree {
-		
-	}
+		[#
+			USER = MANAGER.parkFromIndoor()
+			// TODO: Send notification 
+		#]
+		// forward notificationacotr -m notifyuser : notifyuser(NOTIFY)
+		forward weightsensoractor -m stoppolling : stoppolling(STOP)
+		updateResource[# "{\"door\": \"indoor\", \"state\":\"FREE\"}" #] 
+	} Goto enterNext if [# MANAGER.getReserveDoorQueue(INDOOR).getSize() > 0 #] else work
 	
 	State handleOutdoorOccupied {
 		[#
@@ -231,8 +237,41 @@ QActor parkingmanagerservice context ctxcarparking {
 	} Goto work
 	
 	State handleOutdoorFree {
-		
-	}
+		[#
+			MANAGER.setDoorFree(OUTDOOR)	
+		#]
+		updateResource[# "{\"door\": \"outdoor\", \"state\": \"FREE\"}" #]
+	} Goto exitNext if [# MANAGER.getReserveDoorQueue(OUTDOOR).getSize() > 0 #] else work
+	
+	State enterNext {
+		[#
+			USER = MANAGER.reserveDoor(INDOOR)
+			if (null != USER) {
+				// TODO: Implement notification
+		#]
+				// forward notificationactor -m notifyuser : notifyuser(NOTIFY)
+				forward weightsensoractor -m dopolling : dopolling($INDOOR_POLLING)
+				forward itoccactor -m startitocc : startitocc(START)
+				updateResource[# "{\"door\": \"indoor\", \"state\": \"RESERVED\"}" #]
+				updateResource[# "{\"slot\": \"${SLOTNUM}\", \"user\": \"${USER!!.email}\",\"state\":\"RESERVED\"}" #]
+		[# 
+			}	
+		#]
+	} Goto work
+	
+	State exitNext {
+		[#
+			USER = MANAGER.reserveDoor(OUTDOOR)
+			if (null != USER) {
+		#]
+				forward outsonaractor -m dopolling : dopolling($OUTDOOR_POLLING)
+				forward dtfreeactor -m startdtfree : startdtfree(START)
+				updateResource[# "{\"door\": \"outdoor\", \"state\": \"RESERVED\"}" #]
+				updateResource[# "{\"slot\": \"${SLOTNUM}\", \"user\": \"${USER!!.email}\", \"state\": \"RELEASE\"}" #]
+		[#
+			}	
+		#]
+	} Goto work
 }
 
 QActor itoccactor context ctxcarparking {

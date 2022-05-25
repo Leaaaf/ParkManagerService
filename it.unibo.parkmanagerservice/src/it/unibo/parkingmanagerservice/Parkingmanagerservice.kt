@@ -167,6 +167,7 @@ class Parkingmanagerservice ( name: String, scope: CoroutineScope  ) : ActorBasi
 								)
 						}
 					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("handleIndoorOccupied") { //this:State
 					action { //it:State
@@ -180,7 +181,17 @@ class Parkingmanagerservice ( name: String, scope: CoroutineScope  ) : ActorBasi
 				}	 
 				state("handleIndoorFree") { //this:State
 					action { //it:State
+						
+									USER = MANAGER.parkFromIndoor()
+									// TODO: Send notification 
+						forward("stoppolling", "stoppolling(STOP)" ,"weightsensoractor" ) 
+						updateResourceRep( "{\"door\": \"indoor\", \"state\":\"FREE\"}"  
+						)
 					}
+					 transition( edgeName="goto",targetState="enterNext", cond=doswitchGuarded({ MANAGER.getReserveDoorQueue(INDOOR).getSize() > 0  
+					}) )
+					transition( edgeName="goto",targetState="work", cond=doswitchGuarded({! ( MANAGER.getReserveDoorQueue(INDOOR).getSize() > 0  
+					) }) )
 				}	 
 				state("handleOutdoorOccupied") { //this:State
 					action { //it:State
@@ -203,7 +214,48 @@ class Parkingmanagerservice ( name: String, scope: CoroutineScope  ) : ActorBasi
 				}	 
 				state("handleOutdoorFree") { //this:State
 					action { //it:State
+						
+									MANAGER.setDoorFree(OUTDOOR)	
+						updateResourceRep( "{\"door\": \"outdoor\", \"state\": \"FREE\"}"  
+						)
 					}
+					 transition( edgeName="goto",targetState="exitNext", cond=doswitchGuarded({ MANAGER.getReserveDoorQueue(OUTDOOR).getSize() > 0  
+					}) )
+					transition( edgeName="goto",targetState="work", cond=doswitchGuarded({! ( MANAGER.getReserveDoorQueue(OUTDOOR).getSize() > 0  
+					) }) )
+				}	 
+				state("enterNext") { //this:State
+					action { //it:State
+						
+									USER = MANAGER.reserveDoor(INDOOR)
+									if (null != USER) {
+										// TODO: Implement notification
+						forward("dopolling", "dopolling($INDOOR_POLLING)" ,"weightsensoractor" ) 
+						forward("startitocc", "startitocc(START)" ,"itoccactor" ) 
+						updateResourceRep( "{\"door\": \"indoor\", \"state\": \"RESERVED\"}"  
+						)
+						updateResourceRep( "{\"slot\": \"${SLOTNUM}\", \"user\": \"${USER!!.email}\",\"state\":\"RESERVED\"}"  
+						)
+						 
+									}	
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("exitNext") { //this:State
+					action { //it:State
+						
+									USER = MANAGER.reserveDoor(OUTDOOR)
+									if (null != USER) {
+						forward("dopolling", "dopolling($OUTDOOR_POLLING)" ,"outsonaractor" ) 
+						forward("startdtfree", "startdtfree(START)" ,"dtfreeactor" ) 
+						updateResourceRep( "{\"door\": \"outdoor\", \"state\": \"RESERVED\"}"  
+						)
+						updateResourceRep( "{\"slot\": \"${SLOTNUM}\", \"user\": \"${USER!!.email}\", \"state\": \"RELEASE\"}"  
+						)
+						
+									}	
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 			}
 		}
