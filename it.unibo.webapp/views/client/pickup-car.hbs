@@ -121,9 +121,6 @@
         font-family: Arial, Helvetica, sans-serif;
         margin-left: 2rem;
       }
-      form {
-        width: 20%;
-      }
     </style>
     <title>ParkingManagerService</title>
   </head>
@@ -133,12 +130,39 @@
       <div>
         <h3>PARKING MANAGER SERVICE</h3>
       </div>
-      <form action="/client" method="GET">
-        <button class="primary">CLIENT</button>
+      <form action="/" method="GET" style="width: 30%;">
+        <button class="primary">HOME</button>
       </form>
-      <form action="/manager" method="GET">
-        <button class="primary">MANAGER</button>
-      </form>
+     </div>
+   </div>
+   <div class="main-container">
+     <div>
+      <h4>MENU</h4>
+      <div class="box">
+        <form action="/client/requestslotnum" method="get" style="width: 100%">
+          <button type="submit" class="secondary">REQUEST SLOTNUM</button>
+        </form>
+        <form action="/client/entercar" method="get" style="width: 100%">
+          <button type="submit" class="secondary" style="margin-top: 2rem;">ENTER CAR</button>
+        </form>
+        <form action="/client/pickupcar" method="get" style="width: 100%">
+          <button type="submit" class="secondary-selected" style="margin-top: 2rem;">PICKUP CAR</button>
+        </form>
+      </div>
+     </div>
+     <div>
+      <div>
+          <h4>PICKUP CAR</h4>
+          <div class="box top">
+            <form action="client/pickup/send" method="POST">
+              <label>TOKEN</label>
+              <input type="text" id="token" value="" placeholder="Insert your token here" class="text-box" width="250">
+              <label>EMAIL</label>
+              <input type="text" id="email" value="" placeholder="Insert your email here" class="text-box" width="250">
+              <button type="submit" class="primary">PICKUP CAR</button>
+            </form>
+          </div>
+       </div>
      </div>
    </div>
   </body>
