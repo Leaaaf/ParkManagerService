@@ -139,11 +139,11 @@
       <div>
           <h4>LOG INTO MANAGER CONSOLE</h4>
           <div class="box top">
-            <form action="auth/login" method="POST">
+            <form action="/auth/login" role="form" method="POST">
               <label>USERNAME</label>
-              <input type="text" id="username" value="" placeholder="Insert your username here" class="text-box" width="250">
+              <input type="text" id="username" name="username" placeholder="Insert your username here" class="text-box" width="250">
               <label>PASSWORD</label>
-              <input type="password" id="password" value="" placeholder="Insert your password here" class="text-box" width="250">
+              <input type="password" id="password" name="password" placeholder="Insert your password here" class="text-box" width="250">
               <button type="submit" class="primary">LOG IN</button>
             </form>
           </div>

@@ -1,4 +1,4 @@
-import { Controller, Get, Redirect, Render, UseGuards } from '@nestjs/common';
+import { Controller, Get, Render, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { ManagerService } from './manager.service';
 
@@ -9,12 +9,12 @@ export class ManagerController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @Render('manager/main-console')
-  root() {
+  root(@Request() req) {
   }
 
   @Get("login")
   @Render("manager/login")
   login() {
-
+    
   }
 }
