@@ -8,9 +8,16 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { configuration } from './common/configuration';
 import { validationSchema } from './common/validation';
+import { SocketIoService } from './socket/socket-io.service';
+import { SocketIoModule } from './socket/socket-io.module';
 
 @Module({
-  imports: [ManagerModule, ClientModule, AuthModule, UserModule,
+  imports: [
+    ManagerModule, 
+    ClientModule, 
+    AuthModule, 
+    UserModule,
+    SocketIoModule,
     ConfigModule.forRoot({
       envFilePath: ".env",
       isGlobal: true,
