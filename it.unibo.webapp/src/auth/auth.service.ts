@@ -18,10 +18,10 @@ export class AuthService {
   }
 
   async login(user: User) {
-    const paylaod = {username: user.username, sub: user.userId};
+    const payload = {username: user.username, sub: user.userId};
     try {
       return {
-        access_token: this.jwtService.sign(paylaod)
+        access_token: this.jwtService.sign(payload)
       }
     } catch (e) {
       return {

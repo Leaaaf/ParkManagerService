@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from 'src/user/user.module';
@@ -10,9 +10,13 @@ import { LocalStrategy } from './strategy/local.strategy';
 @Module({
   imports: [
     UserModule,
-    PassportModule,
+    PassportModule.register({
+      defaultStrategy: "jwt",
+      property: "user",
+      session: false,
+    }),
     JwtModule.registerAsync({
-      imports: [ConfigService],
+      imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get("JWT_SECRET"),
         signOptions: { expiresIn: "3600s" },
