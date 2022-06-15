@@ -3,10 +3,12 @@ import { Socket } from "socket.io-client";
 
 export class SocketIoStrategy extends Server implements CustomTransportStrategy {
   constructor(private client: Socket) {
+    console.log("SocketIoStrategy")
     super();
   }
 
   listen(callback: () => void) {
+    console.log("SocketIoStrategy | listen")
     this.client.on('connection', () => {
       console.log("connect");
     });
@@ -20,7 +22,7 @@ export class SocketIoStrategy extends Server implements CustomTransportStrategy 
       });
     });
 
-    callback;
+    callback();
   }
 
   close() {
