@@ -1,5 +1,7 @@
-import { Controller, Get, Redirect, Render, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Redirect, Render, Req, Res, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Response } from 'express';
 import { ClientService } from './client.service';
+import { CreateRequestSlotnumDto } from './dto/request-slotnum.dto';
 
 @Controller('client')
 export class ClientController {
@@ -12,7 +14,7 @@ export class ClientController {
 
   @Get("requestslotnum")
   @Render('client/home')
-  requestSlotnum() {
+  requestSlotnum(@Req() req) {
   }
 
   @Get("entercar")
@@ -23,5 +25,13 @@ export class ClientController {
   @Get("pickupcar")
   @Render('client/pickup-car')
   pickupCar() {
+  }
+
+  @Post("requestslotnum/send")
+  @Render('client/home')
+  @UsePipes(new ValidationPipe({transform: true}))
+  sendRequestSlotnum(@Body() body: CreateRequestSlotnumDto) {    
+    this.clientService.notifyIntrest(body.email);
+    return {message: "Request sent, check your email"}
   }
 }

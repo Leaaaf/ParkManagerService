@@ -104,6 +104,14 @@
         margin-bottom: 1rem;
         width: 98%;
       }
+      .message {
+        border: solid 1px #424242;
+        border-radius: 5px;
+        padding: 5px;
+        font-size: 16px;
+        background-color: #d8d8d858;
+        margin-bottom: .5rem;
+      }
       .p-row {
         margin-top: 2rem;
       }
@@ -154,7 +162,8 @@
       <div>
           <h4>REQUEST SLOTNUM</h4>
           <div class="box top">
-            <form action="client/requestslotnum/send" method="POST">
+            <span class="message">{{message}}</span>
+            <form action="/client/requestslotnum/send" role="form" method="POST">
               <label>EMAIL</label>
               <input type="text" id="email" name="email" placeholder="Insert your email here" class="text-box" width="250">
               <button type="submit" class="primary">SEND</button>

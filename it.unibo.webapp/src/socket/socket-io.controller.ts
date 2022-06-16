@@ -23,6 +23,7 @@ export class SocketIoController {
     console.log("got fan from parking manager service", data);
     const responseMessage = 'Fan Payload';
     client.emit('fanResponse', responseMessage);
+    return data;
   }
 
   @MessagePattern("weightsensor")

@@ -51,11 +51,13 @@ io.on("connection", (socket) => {
   console.log("sokcet connection: " + socket.connected);
   console.log("sokcet client: " + socket.client.request.headers.origin);
 
-  socket.emit("fan", "hi from RTM");
+  socket.emit("fanstate", "ON");
+  socket.emit("trolleystate", "IDLE");
+  socket.emit("antifiremode", "AUTO");
   socket.on("fanResponse", (payload) => {
     console.log("receive greeting from client: ", payload);
   });
-});
+}); 
 
-//module.exports = app;
+//module.exports = app
 server.listen(8000)

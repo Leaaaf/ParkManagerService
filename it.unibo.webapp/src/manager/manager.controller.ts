@@ -1,11 +1,13 @@
-import { Controller, Get, Render, Req, Request, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Render, Req, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { ManagerService } from './manager.service';
 
 @Controller('manager')
 export class ManagerController {
-  constructor(private readonly managerService: ManagerService) {}
+  constructor(
+    private readonly managerService: ManagerService
+  ) {}
 
   @Get()
   async handleManagerLogin(@Req() req, @Res({ passthrough: true }) res: Response) {
@@ -16,7 +18,7 @@ export class ManagerController {
   @Get("console")
   @UseGuards(JwtAuthGuard)
   @Render('manager/main-console')
-  async console(@Request() req) {
+  console(@Res() res: Response) {
   }
 
   @Get("login")

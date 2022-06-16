@@ -5,8 +5,8 @@ import { SocketIoService } from "./socket-io.service";
 
 @Global()
 @Module({
-  providers: [SocketIoService, SocketIoProxyService],
   controllers: [SocketIoController],
+  providers: [SocketIoService, SocketIoProxyService],
   exports: [SocketIoService, SocketIoProxyService],
 })
 export class SocketIoModule {}
