@@ -1,8 +1,10 @@
 import { Controller, Get, Render, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { ManagerService } from './manager.service';
 
+@ApiTags("manager")
 @Controller('manager')
 export class ManagerController {
   constructor(

@@ -1,8 +1,10 @@
 import { Body, Controller, Get, Post, Redirect, Render, Req, Res, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ClientService } from './client.service';
 import { CreateRequestSlotnumDto } from './dto/request-slotnum.dto';
 
+@ApiTags("client")
 @Controller('client')
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}

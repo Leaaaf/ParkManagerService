@@ -1,9 +1,11 @@
 import { Controller, Get, Post, Redirect, Render, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AppService } from './app.service';
 import { AuthService } from './auth/auth.service';
 import { LocalAuthGuard } from './auth/guard/local-auth.guard';
 
+@ApiTags("core")
 @Controller()
 export class AppController {
   constructor(

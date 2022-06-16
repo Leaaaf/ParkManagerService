@@ -33,7 +33,6 @@ async function bootstrap() {
     .setTitle("Parking Manager Service")
     .setDescription("Final task of ISS @Unibo")
     .setVersion("1.0")
-    .addTag("iss")
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
