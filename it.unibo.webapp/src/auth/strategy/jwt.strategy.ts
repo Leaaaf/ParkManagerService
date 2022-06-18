@@ -1,6 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express-serve-static-core";
 import { Strategy } from "passport-jwt";
@@ -25,12 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * @returns token or null
    */
   private static extractJwtFromCookies(req: Request) {
-    const jwt = new JwtService();
-    const decoded_token = jwt.decode(req.cookies["X-AUTH-TOKEN"]);
-
-    let now: string | number = Date.now().toString()
-    now = Number(now.substring(0, now.length - 3))
-
-    return decoded_token["exp"] - now > 0 ? req.cookies["X-AUTH-TOKEN"] : null
+    return req.cookies["X-AUTH-TOKEN"]
   }
 }

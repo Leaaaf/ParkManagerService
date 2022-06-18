@@ -28,6 +28,15 @@
       socket.on('dtfreestate', function(data) {
         document.getElementById("dtfree-state").innerHTML = data;
       });
+      socket.on('temperature', function(data) {
+        document.getElementById("temperature").innerHTML = data;
+      });
+      socket.on('weight', function(data) {
+        document.getElementById("weight").innerHTML = data;
+      });
+      socket.on('outsonar', function(data) {
+        document.getElementById("outsonar").innerHTML = data;
+      });
     </script>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="style.css">
@@ -176,7 +185,7 @@
           <div class="status top">
           <span>TEMPERATURE: <span id="temperature"></span></span>
           <span>WEIGHT: <span id="weight"></span></span>
-          <span>SONAR: <span id="sonar"></span></span>  
+          <span>SONAR: <span id="outsonar"></span></span>  
           </div>
        </div>
        <div>

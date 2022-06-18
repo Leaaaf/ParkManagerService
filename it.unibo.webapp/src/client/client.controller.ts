@@ -2,7 +2,9 @@ import { Body, Controller, Get, Post, Redirect, Render, Req, Res, UsePipes, Vali
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ClientService } from './client.service';
-import { CreateRequestSlotnumDto } from './dto/request-slotnum.dto';
+import { EnterCarDto } from './dto/enter-car.dto';
+import { PickupCarDto } from './dto/pickup-car.dto';
+import { RequestSlotnumDto } from './dto/request-slotnum.dto';
 
 @ApiTags("client")
 @Controller('client')
@@ -32,8 +34,26 @@ export class ClientController {
   @Post("requestslotnum/send")
   @Render('client/home')
   @UsePipes(new ValidationPipe({transform: true}))
-  sendRequestSlotnum(@Body() body: CreateRequestSlotnumDto) {    
+  sendRequestSlotnum(@Body() body: RequestSlotnumDto) {    
     this.clientService.notifyIntrest(body.email);
+    return {message: "Request sent, check your email"}
+  }
+
+  @Post("entercar/send")
+  @Render('client/enter-car')
+  @UsePipes(new ValidationPipe({transform: true}))
+  sendEnterCar(@Body() body: EnterCarDto) {   
+    if (body.slotnum < 1 || body.slotnum > 6)
+      return {message: "Slotnum must be in the range 1, 6"}
+    this.clientService.enterCar(body.email, body.slotnum);
+    return {message: "Request sent, check your email"}
+  }
+
+  @Post("pickupcar/send")
+  @Render('client/pickup-car')
+  @UsePipes(new ValidationPipe({transform: true}))
+  sendPickupCar(@Body() body: PickupCarDto) {    
+    this.clientService.pickupCar(body.email, body.token);
     return {message: "Request sent, check your email"}
   }
 }
