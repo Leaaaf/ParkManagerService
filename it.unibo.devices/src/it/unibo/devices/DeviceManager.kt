@@ -50,7 +50,7 @@ object DeviceManager {
 					if (jsonObj.has("id")) {
 						id = jsonObj.getString("id")
 						
-						if (jsonObj.has("type")) {
+						if (jsonObj.has("device")) {
 							deviceType = DeviceType.valueOf(jsonObj.getString("device").toUpperCase())
 							println("DeviceManager | Found device config ${id} [$deviceType]")
 							

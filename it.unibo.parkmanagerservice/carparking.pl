@@ -11,4 +11,4 @@ context(ctxbasicrobot, "localhost",  "TCP", "8020").
   qactor( weightsensoractor, ctxweightsensor, "external").
   qactor( thermometeractor, ctxthermometer, "external").
   qactor( outsonaractor, ctxoutsonarsensor, "external").
-  qactor( parkingmanagerservice, ctxcarparking, "it.unibo.parkingmanagerservice.Parkingmanagerservice").
+  qactor( basicrobot, ctxbasicrobot, "external").

@@ -123,7 +123,7 @@ jar {
 distZip {
 	into("$baseName-$version/bin") {
 		from '.'
-		include 'configs/*'
+		include 'config/*'
 		include 'resources/*'
 		include '*.pl'
 	}
