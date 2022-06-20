@@ -3,11 +3,27 @@
   <head>
     <script src="https://cdn.socket.io/4.3.2/socket.io.min.js" integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs" crossorigin="true"></script>
     <script>
-      const socket = io('http://localhost:8000', { transports : ['websocket'] });
+      const socket = io('http://localhost:8100', { transports : ['websocket'] });
+      const socketFan = io('http://localhost:8001', { transports : ['websocket'] });
+      const socketWeightSensor = io('http://localhost:8002', { transports : ['websocket'] });
+      const socketThermometer = io('http://localhost:8003', { transports : ['websocket'] });
+      const socketOutsonar = io('http://localhost:8004', { transports : ['websocket'] });
       socket.on('connect', function() {
         console.log('Connected');
       });
-      socket.on('fanstate', function(data) {
+      socketFan.on('connect', function() {
+        console.log('Connected');
+      });
+      socketWeightSensor.on('connect', function() {
+        console.log('Connected');
+      });
+      socketThermometer.on('connect', function() {
+        console.log('Connected');
+      });
+      socketOutsonar.on('connect', function() {
+        console.log('Connected');
+      });
+      socketFan.on('fanstate', function(data) {
         document.getElementById("fan-state").innerHTML = data;
       });
       socket.on('trolleystate', function(data) {
