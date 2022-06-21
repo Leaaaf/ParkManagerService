@@ -45,12 +45,12 @@ Dispatch notifyuser : notifyuser(X)
 // Ctx carparking
 Context ctxcarparking ip [host="localhost" port=8100]
 // Ctx devices
-Context ctxfan ip [host="localhost" port=8001]
-Context ctxweightsensor ip [host="localhost" port=8002]
-Context ctxthermometer ip [host="localhost" port=8003]
-Context ctxoutsonarsensor ip [host="localhost" port=8004]
-// Ctx basicrobot
-Context ctxbasicrobot ip [host="localhost" port=8020]
+Context ctxfan ip [host="127.0.0.1" port=8001]
+Context ctxweightsensor ip [host="127.0.0.1" port=8002]
+Context ctxthermometer ip [host="127.0.0.1" port=8003]
+Context ctxoutsonarsensor ip [host="127.0.0.1" port=8004]
+// Ctx basicrobot 
+Context ctxbasicrobot ip [host="127.0.0.1" port=8020]
 
 ExternalQActor fanactor context ctxfan
 ExternalQActor weightsensoractor context ctxweightsensor

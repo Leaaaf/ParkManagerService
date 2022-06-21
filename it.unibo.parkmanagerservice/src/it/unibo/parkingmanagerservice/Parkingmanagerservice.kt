@@ -16,11 +16,246 @@ class Parkingmanagerservice ( name: String, scope: CoroutineScope  ) : ActorBasi
 	@kotlinx.coroutines.ObsoleteCoroutinesApi
 	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+				it.unibo.parkingmanagerservice.repository.ParkingRepository.createParking(6)
+				it.unibo.parkingmanagerservice.usecase.ParkManagerServiceUseCase.create(
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getUserRepository(),
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getParkingSlotRepository(),
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getIndoorQueueRepository(),
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getOutdoorQueueRepository(),
+					it.unibo.parkingmanagerservice.repository.ParkingRepository.getDoorManagerRepository()
+				)
+				
+				val MANAGER = it.unibo.parkingmanagerservice.usecase.ParkManagerServiceUseCase.get()
+				
+				// Timers
+				val timers = it.unibo.parkingmanagerservice.entity.timer.Timer.get()
+				val ITOCC = timers.ITOCC
+				val DTFREE = timers.DTFREE
+				val INDOOR_POLLING = timers.INDOOR_POLLING
+				val OUTDOOR_POLLING = timers.OUTDOOR_POLLING
+				
+				// ParkingSlot
+				var SLOTNUM : Long = 0
+				var PARKING_SLOT : it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlot?
+				var PARKING_SLOT_ERROR : Pair<it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlot?,
+												it.unibo.parkingmanagerservice.entity.ParkingManagerServiceError?>
+				
+				// User - ParkingSlot
+				var USER_SLOT : Pair<it.unibo.parkingmanagerservice.entity.user.User?,
+										it.unibo.parkingmanagerservice.entity.parkingslot.ParkingSlot?>
+									
+				// User
+				var USER : it.unibo.parkingmanagerservice.entity.user.User?
+				var USER_ERROR : Pair<it.unibo.parkingmanagerservice.entity.user.User?,
+										it.unibo.parkingmanagerservice.entity.ParkingManagerServiceError?>
+								
+				// Door Type
+				val INDOOR = it.unibo.parkingmanagerservice.entity.door.DoorType.INDOOR
+				val OUTDOOR = it.unibo.parkingmanagerservice.entity.door.DoorType.OUTDOOR
+								
+				// Notify
+												
+				var PAYLOAD : String = ""
+				
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						println("PARK MANAGER SERVICE | Started...")
+						println("$name | Started")
+						updateResourceRep( "{\"door\": \"indoor\", \"state\": \"FREE\"}"  
+						)
+						updateResourceRep( "{\"door\": \"outdoor\", \"state\": \"FREE\"}"  
+						)
 					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("work") { //this:State
+					action { //it:State
+						println("$name | Waiting for request...")
+						updateResourceRep( "work"  
+						)
+					}
+					 transition(edgeName="t0",targetState="handleEnter",cond=whenRequest("enter"))
+					transition(edgeName="t1",targetState="handleEnterCar",cond=whenRequest("entercar"))
+					transition(edgeName="t2",targetState="handlePickup",cond=whenRequest("pickup"))
+					transition(edgeName="t3",targetState="handleIndoorOccupied",cond=whenEvent("weighton"))
+					transition(edgeName="t4",targetState="handleIndoorFree",cond=whenEvent("weightoff"))
+					transition(edgeName="t5",targetState="handleOutdoorOccupied",cond=whenEvent("outsonaron"))
+					transition(edgeName="t6",targetState="handleOutdoorFree",cond=whenEvent("outsonaroff"))
+				}	 
+				state("handleEnter") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						 SLOTNUM = 0  
+						if( checkMsgContent( Term.createTerm("enter(EMAIL)"), Term.createTerm("enter(EMAIL)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												try {
+													USER = MANAGER.createUser(payloadArg(0))
+													SLOTNUM = MANAGER.setSlotToUser(USER!!)
+													
+													if (SLOTNUM > 0) {
+														MANAGER.putUserReserveDoorQueue(USER!!, INDOOR)
+														if (MANAGER.reserveDoor(INDOOR) != null) {
+															PAYLOAD = "{\"slotnum\": \"$SLOTNUM\", \"indoor\": \"FREE\", \"time\": \"${ITOCC}\"}"
+								updateResourceRep( "{\"door\": \"indoor\", \"state\": \"RESERVED\"}"  
+								)
+								updateResourceRep( "{\"slot\": \"${SLOTNUM}\", \"user\": \"${USER!!.email}\", \"state\": \"RESERVED\"}"  
+								)
+								forward("dopolling", "dopolling($INDOOR_POLLING)" ,"weightsensoractor" ) 
+								forward("startitocc", "startitocc(START)" ,"itoccactor" ) 
+								 
+														} else {
+															PAYLOAD = "{\"slotnum\": \"${SLOTNUM}\", \"indoor\": \"OCCUPIED\"}"
+														}
+													}
+												} catch (e : java.sql.SQLException) {
+													PAYLOAD = "{\"error\": \"${e.getLocalizedMessage()}\"}"
+												}				
+						}
+						println("$name | Reply with slotnum: ${PAYLOAD!!}")
+						answer("enter", "slotnum", "slotnum($PAYLOAD)"   )  
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("handleEnterCar") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("entercar(SLOTNUM,MAIL)"), Term.createTerm("entercar(SLOTNUM,EMAIL)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+											USER_ERROR = MANAGER.setTokenUserIndoor(payloadArg(0), payloadArg(1))
+											if (null != USER_ERROR.first && null == USER_ERROR.second) {
+												PAYLOAD = "{\"token\": \"${USER_ERROR.first!!.token!!.toString()}\"}"
+								forward("stopcount", "stopcount(STOP)" ,"itoccactor" ) 
+								forward("parkcar", "parkcar($SLOTNUM)" ,"trolleyactor" ) 
+								updateResourceRep( "{\"slotnum\": \"${SLOTNUM}\", \"user\": \"${USER_ERROR.first!!.email}\", \"state\": \"OCCUPIED\"}"  
+								)
+								 
+											} else PAYLOAD = "{\"error\": \"${USER_ERROR!!.second!!.msg}\"}"
+								println("$name | Reply to ENTERCAR with $PAYLOAD")
+								answer("entercar", "token", "token($PAYLOAD)"   )  
+								updateResourceRep( "Reply to ENTERCAR with $PAYLOAD"  
+								)
+						}
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("handlePickup") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("pickup(TOKEN,MAIL)"), Term.createTerm("pickup(TOKEN,EMAIL)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												PARKING_SLOT_ERROR = MANAGER.validateToken(payloadArg(0), payloadArg(1))
+												if (null != PARKING_SLOT_ERROR.first && null == PARKING_SLOT_ERROR.second) {
+													SLOTNUM = PARKING_SLOT_ERROR.first!!.id
+													MANAGER.putUserReserveDoorQueue(PARKING_SLOT_ERROR.first!!.user!!, OUTDOOR)
+													if (null != MANAGER.reserveDoor(OUTDOOR)) {
+														PAYLOAD = "{\"msg\": \"The transport trolley will transport your car to the outdoor: you will get a notification when your car is ready. Plase stay near the ourdoor\"}"
+								updateResourceRep( "{\"slot\": \"${SLOTNUM}\", \"user\": \"${PARKING_SLOT_ERROR.first!!.user!!.email}\", \"state\": \"RELEASE\"}"  
+								)
+								forward("startdtfree", "startdtfree($OUTDOOR_POLLING)" ,"dtfreeactor" ) 
+											
+													} else
+														PAYLOAD = "{\"msg\": \"The outdoor is already engaged. When possible, the trolley will transport your car to the outdoor. You will be notified as soon.\"}"
+												} else
+													PAYLOAD = "{\"msg\": \"$PARKING_SLOT_ERROR.second!!\"}"
+								println("$name | Reply with canpickup(${PAYLOAD!!})")
+								answer("pickup", "canpickup", "canpickup($PAYLOAD)"   )  
+								updateResourceRep( "canpickup($PAYLOAD)"  
+								)
+						}
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("handleIndoorOccupied") { //this:State
+					action { //it:State
+						forward("stopcount", "stopcount(STOP)" ,"itoccactor" ) 
+						
+									USER = MANAGER.setDoorOccupied(INDOOR)!!	
+						updateResourceRep( "{\"door\": \"indoor\", \"state\": \"OCCUPIED\"}"  
+						)
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("handleIndoorFree") { //this:State
+					action { //it:State
+						
+									USER = MANAGER.parkFromIndoor()
+									// TODO: Send notification 
+						forward("stoppolling", "stoppolling(STOP)" ,"weightsensoractor" ) 
+						updateResourceRep( "{\"door\": \"indoor\", \"state\":\"FREE\"}"  
+						)
+					}
+					 transition( edgeName="goto",targetState="enterNext", cond=doswitchGuarded({ MANAGER.getReserveDoorQueue(INDOOR).getSize() > 0  
+					}) )
+					transition( edgeName="goto",targetState="work", cond=doswitchGuarded({! ( MANAGER.getReserveDoorQueue(INDOOR).getSize() > 0  
+					) }) )
+				}	 
+				state("handleOutdoorOccupied") { //this:State
+					action { //it:State
+						
+									MANAGER.setDoorOccupied(OUTDOOR)!!
+									USER_SLOT = MANAGER.setSlotFree()
+									USER = USER_SLOT.first	
+									
+									if (null != USER!!) {
+										// TODO: Send notification
+						forward("pickupcar", "pickupcar($SLOTNUM)" ,"trolleyactor" ) 
+						updateResourceRep( "{\"door\": \"outdoor\", \"state\": \"OCCUPIED\"}"  
+						)
+						updateResourceRep( "{\"slot\": \"${USER_SLOT.second!!.id}\", \"user\": \"${USER!!.email}\", \"state\": \"FREE\"}"  
+						)
+						
+									}
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("handleOutdoorFree") { //this:State
+					action { //it:State
+						
+									MANAGER.setDoorFree(OUTDOOR)	
+						updateResourceRep( "{\"door\": \"outdoor\", \"state\": \"FREE\"}"  
+						)
+					}
+					 transition( edgeName="goto",targetState="exitNext", cond=doswitchGuarded({ MANAGER.getReserveDoorQueue(OUTDOOR).getSize() > 0  
+					}) )
+					transition( edgeName="goto",targetState="work", cond=doswitchGuarded({! ( MANAGER.getReserveDoorQueue(OUTDOOR).getSize() > 0  
+					) }) )
+				}	 
+				state("enterNext") { //this:State
+					action { //it:State
+						
+									USER = MANAGER.reserveDoor(INDOOR)
+									if (null != USER) {
+										// TODO: Implement notification
+						forward("dopolling", "dopolling($INDOOR_POLLING)" ,"weightsensoractor" ) 
+						forward("startitocc", "startitocc(START)" ,"itoccactor" ) 
+						updateResourceRep( "{\"door\": \"indoor\", \"state\": \"RESERVED\"}"  
+						)
+						updateResourceRep( "{\"slot\": \"${SLOTNUM}\", \"user\": \"${USER!!.email}\",\"state\":\"RESERVED\"}"  
+						)
+						 
+									}	
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("exitNext") { //this:State
+					action { //it:State
+						
+									USER = MANAGER.reserveDoor(OUTDOOR)
+									if (null != USER) {
+						forward("dopolling", "dopolling($OUTDOOR_POLLING)" ,"outsonaractor" ) 
+						forward("startdtfree", "startdtfree(START)" ,"dtfreeactor" ) 
+						updateResourceRep( "{\"door\": \"outdoor\", \"state\": \"RESERVED\"}"  
+						)
+						updateResourceRep( "{\"slot\": \"${SLOTNUM}\", \"user\": \"${USER!!.email}\", \"state\": \"RELEASE\"}"  
+						)
+						
+									}	
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 			}
 		}
