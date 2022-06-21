@@ -17,6 +17,7 @@ class WebSocketUpdater<T>(value : T, address : String, converter : (String) -> T
 	private val client = OkHttpClient()
 				
 	override fun start() {
+		println("WebSocketUpdater | start | Connecting to ws ${address}")
 		if (!working.getAndSet(true)) {
 			val request = Request.Builder()
 							.url(address)
@@ -48,7 +49,7 @@ class WebSocketUpdater<T>(value : T, address : String, converter : (String) -> T
 
 private class ValueWebSocketListener<T>(value : LockableVal<T>, converter : (String) -> T) : WebSocketListener() {
 	
-	lateinit var url : String
+	var url : String = ""
 	val value = value
 	val converter = converter
 	val lock = ReentrantLock()

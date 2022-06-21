@@ -17,32 +17,47 @@ class Thermometeractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var temperature : Float = 0.0F
+				val thermometer = it.unibo.devices.DeviceManager.getDevice("thermometer")
+				var tempState = `it.unibo.thermometer`.ThermometerState.NORMAL
+				var temp = 0.0
+				var POLLING_TIME = it.unibo.thermometer.AbstractThermometer.getPollingMs()
+				var CRITICAL_TEMP = it.unibo.thermometer.AbstractThermometer.getCriticalTemp()
+				var jsonData: String
+				
+				if (thermometer == null) {
+					println("$name | Unable to use thermometer")
+					System.exit(-1)
+				}
+				
+				thermometer as it.unibo.thermometer.AbstractThermometer
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						discardMessages = true
-						println("THERMOMETER SENSOR | Started...")
+						println("$name | Started...")
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("work") { //this:State
 					action { //it:State
-						println("THERMOMETER SENSOR | temperature: $temperature")
+						
+									temp = thermometer.readTemperature()
+									jsonData = "{\"data\": \"${temp}\"}"
+									if (temp >= CRITICAL_TEMP && tempState == `it.unibo.thermometer`.ThermometerState.NORMAL) {
+										tempState = `it.unibo.thermometer`.ThermometerState.CRITICAL
+						emit("criticaltemp", "criticaltemp(CRITICAL)" ) 
+						
+									} else if (temp < CRITICAL_TEMP && tempState == `it.unibo.thermometer`.ThermometerState.CRITICAL) {
+										tempState = `it.unibo.thermometer`.ThermometerState.NORMAL
+						emit("criticaltemp", "criticaltemp(NORMAL)" ) 
+						
+									} 
+						updateResourceRep( jsonData  
+						)
+						stateTimer = TimerActor("timer_work", 
+							scope, context!!, "local_tout_thermometeractor_work", POLLING_TIME )
 					}
-					 transition(edgeName="t00",targetState="measure",cond=whenDispatch("measuretemperature"))
-				}	 
-				state("measure") { //this:State
-					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("measuretemperature(X)"), Term.createTerm("measuretemperature(X)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								 
-												val value = payloadArg(0) 
-												temperature = value.toFloat()
-						}
-					}
-					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+					 transition(edgeName="t06",targetState="work",cond=whenTimeout("local_tout_thermometeractor_work"))   
+					transition(edgeName="t07",targetState="work",cond=whenDispatch("updatethermometer"))
 				}	 
 			}
 		}

@@ -43,7 +43,7 @@ Reply canpickup : canpickup(X)
 Dispatch notifyuser : notifyuser(X)
 
 // Ctx carparking
-Context ctxcarparking ip [host="localhost" port=8000]
+Context ctxcarparking ip [host="localhost" port=8100]
 // Ctx devices
 Context ctxfan ip [host="localhost" port=8001]
 Context ctxweightsensor ip [host="localhost" port=8002]

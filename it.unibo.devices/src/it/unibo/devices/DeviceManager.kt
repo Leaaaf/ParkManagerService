@@ -78,6 +78,7 @@ object DeviceManager {
 	}
 	
 	private fun getFan(jsonObj : JSONObject) : AbstractFan? {
+		println("DeviceManager | getFan | ${jsonObj.toString()}")
 		val res = FanFactory.create(jsonObj.getString("id"),
 									if(jsonObj.has("address")) jsonObj.getString("address") else null)
 		

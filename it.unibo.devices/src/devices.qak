@@ -3,7 +3,7 @@ System devices
 Dispatch dopolling : dopolling(TIME)
 Dispatch stoppolling : stoppolling(X)
 
-// Fan
+// Fan 
 Dispatch fanon : fanon(X)
 Dispatch fanoff : fanoff(X)
 // WeightSensor
@@ -21,7 +21,7 @@ Context ctxweightsensor ip[host="localhost" port=8002]
 Context ctxthermometer ip[host="localhost" port=8003]
 Context ctxoutsonar ip[host="localhost" port=8004]
 
-Context ctxcarparking ip[host="localhost" port=8100]
+Context ctxcarparking ip[host="127.0.0.1" port=8100]
 
 QActor fanactor context ctxfan {
 	[#
@@ -133,8 +133,7 @@ QActor weightsensoractor context ctxweightsensor {
 					whenMsg dopolling -> setpolling
 }
 
-
-QActor thermometheractor context ctxthermometer {
+QActor thermometeractor context ctxthermometer {
 	[#
 		val thermometer = it.unibo.devices.DeviceManager.getDevice("thermometer")
 		var tempState = `it.unibo.thermometer`.ThermometerState.NORMAL
