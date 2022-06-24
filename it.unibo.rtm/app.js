@@ -31,18 +31,18 @@ io.on("connection", (socket) => {
 //module.exports = app
 server.listen(8000)
 
-coapServer.listen(() => {
-  console.log("RTM | Coap Server listening...")
-  const req = coap.request('coap://localhost:8001/ctxthermometer/thermometeractor')
-  req.on('response', (res) => {
-    res.pipe(process.stdout)
-    res.on('end', () => {
-      process.exit(0)
-    })
-  })
+// coapServer.listen(() => {
+//   console.log("RTM | Coap Server listening...")
+//   const req = coap.request('coap://localhost:8001/ctxthermometer/thermometeractor')
+//   req.on('response', (res) => {
+//     res.pipe(process.stdout)
+//     res.on('end', () => {
+//       process.exit(0)
+//     })
+//   })
 
-  req.end();
-})
+//   req.end();
+// })
 
 
 

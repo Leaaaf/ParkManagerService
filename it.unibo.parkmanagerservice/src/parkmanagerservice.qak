@@ -48,14 +48,14 @@ Context ctxcarparking ip [host="localhost" port=8100]
 Context ctxfan ip [host="127.0.0.1" port=8001]
 Context ctxweightsensor ip [host="127.0.0.1" port=8002]
 Context ctxthermometer ip [host="127.0.0.1" port=8003]
-Context ctxoutsonarsensor ip [host="127.0.0.1" port=8004]
+Context ctxoutsonar ip [host="127.0.0.1" port=8004]
 // Ctx basicrobot 
 Context ctxbasicrobot ip [host="127.0.0.1" port=8020]
 
 ExternalQActor fanactor context ctxfan
 ExternalQActor weightsensoractor context ctxweightsensor
 ExternalQActor thermometeractor context ctxthermometer
-ExternalQActor outsonaractor context ctxoutsonarsensor
+ExternalQActor outsonaractor context ctxoutsonar
 ExternalQActor basicrobot context ctxbasicrobot
 
 QActor parkingmanagerservice context ctxcarparking {

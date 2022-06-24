@@ -54,6 +54,7 @@ dependencies {
 
 //OkHttp library for websockets with Kotlin
     implementation( "com.squareup.okhttp3:okhttp:4.9.0" )
+    implementation( "com.squareup.okhttp3:okhttp-ws:3.1.2" )
 //COLORS
 	// https://mvnrepository.com/artifact/com.andreapivetta.kolor/kolor
 	implementation group: 'com.andreapivetta.kolor', name: 'kolor', version: '1.0.0'	
@@ -110,7 +111,7 @@ eclipse {
     }	
  }
  
-mainClassName = 'it.unibo.ctxthermometer.MainCtxthermometerKt'
+mainClassName = 'it.unibo.ctxcarparking.MainCtxcarparkingKt'
 
 jar {
     println("building jar")

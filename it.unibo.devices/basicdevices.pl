@@ -1,5 +1,5 @@
 %====================================================================================
-% devices description   
+% basicdevices description   
 %====================================================================================
 context(ctxfan, "localhost",  "TCP", "8001").
 context(ctxweightsensor, "localhost",  "TCP", "8002").

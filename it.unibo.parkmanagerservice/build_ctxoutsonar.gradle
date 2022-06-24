@@ -1,12 +1,12 @@
 /*
 ================================================================================
-build_ctxoutsonarsensor.gradle
+build_ctxoutsonar.gradle
 GENERATED ONLY ONCE
 USAGE:	 
-  	gradle  -b build_ctxoutsonarsensor.gradle eclipse		//to set the dependency on the library
-	gradle  -b build_ctxoutsonarsensor.gradle distZip
-	gradle  -b build_ctxoutsonarsensor.gradle -q tasks --all
-	gradle  -b build_ctxoutsonarsensor.gradle cleanDistDir	//to clean the src directory
+  	gradle  -b build_ctxoutsonar.gradle eclipse		//to set the dependency on the library
+	gradle  -b build_ctxoutsonar.gradle distZip
+	gradle  -b build_ctxoutsonar.gradle -q tasks --all
+	gradle  -b build_ctxoutsonar.gradle cleanDistDir	//to clean the src directory
 ================================================================================
 */
 plugins {

@@ -5,12 +5,12 @@ context(ctxcarparking, "localhost",  "TCP", "8100").
 context(ctxfan, "127.0.0.1",  "TCP", "8001").
 context(ctxweightsensor, "127.0.0.1",  "TCP", "8002").
 context(ctxthermometer, "127.0.0.1",  "TCP", "8003").
-context(ctxoutsonarsensor, "127.0.0.1",  "TCP", "8004").
+context(ctxoutsonar, "127.0.0.1",  "TCP", "8004").
 context(ctxbasicrobot, "127.0.0.1",  "TCP", "8020").
  qactor( fanactor, ctxfan, "external").
   qactor( weightsensoractor, ctxweightsensor, "external").
   qactor( thermometeractor, ctxthermometer, "external").
-  qactor( outsonaractor, ctxoutsonarsensor, "external").
+  qactor( outsonaractor, ctxoutsonar, "external").
   qactor( basicrobot, ctxbasicrobot, "external").
   qactor( parkingmanagerservice, ctxcarparking, "it.unibo.parkingmanagerservice.Parkingmanagerservice").
   qactor( itoccactor, ctxcarparking, "it.unibo.itoccactor.Itoccactor").

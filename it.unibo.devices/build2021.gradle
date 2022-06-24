@@ -53,8 +53,7 @@ dependencies {
 	//compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
 
 //OkHttp library for websockets with Kotlin
-    implementation( "com.squareup.okhttp3:okhttp:4.2.1" )
-    implementation( "com.squareup.okhttp3:okhttp-ws:3.1.2" )
+    implementation( "com.squareup.okhttp3:okhttp:4.9.0" )
 //COLORS
 	// https://mvnrepository.com/artifact/com.andreapivetta.kolor/kolor
 	implementation group: 'com.andreapivetta.kolor', name: 'kolor', version: '1.0.0'	
@@ -111,7 +110,7 @@ eclipse {
     }	
  }
  
-mainClassName = 'it.unibo.ctxcarparking.MainCtxcarparkingKt'
+mainClassName = 'it.unibo.ctxfan.MainCtxfanKt'
 
 jar {
     println("building jar")
