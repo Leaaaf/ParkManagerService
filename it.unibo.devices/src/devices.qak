@@ -1,4 +1,4 @@
-System basicdevices
+System devices
 
 Dispatch dopolling : dopolling(TIME)
 Dispatch stoppolling : stoppolling(X)

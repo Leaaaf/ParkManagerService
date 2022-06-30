@@ -1,4 +1,4 @@
-package it.unibo.basicfan
+package it.unibo.fan
 
 import org.json.JSONObject
 import it.unibo.utility.WebSocketUpdater

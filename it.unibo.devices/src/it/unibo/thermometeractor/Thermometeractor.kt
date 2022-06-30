@@ -13,8 +13,6 @@ class Thermometeractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm(
 	override fun getInitialState() : String{
 		return "s0"
 	}
-	@kotlinx.coroutines.ObsoleteCoroutinesApi
-	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				val thermometer = it.unibo.devices.DeviceManager.getDevice("thermometer")

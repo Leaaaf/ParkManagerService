@@ -1,3 +1,9 @@
+devices/
+pmsdevices/
+
+*.bin
+*.lock
+
 # Compiled class file
 *.class
 

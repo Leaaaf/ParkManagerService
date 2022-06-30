@@ -13,8 +13,6 @@ class Itoccactor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name,
 	override fun getInitialState() : String{
 		return "s0"
 	}
-	@kotlinx.coroutines.ObsoleteCoroutinesApi
-	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		 	
 				val ITOCC = it.unibo.parkingmanagerservice.entity.timer.Timer.get().ITOCC

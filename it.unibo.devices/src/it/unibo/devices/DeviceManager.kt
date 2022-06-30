@@ -4,7 +4,7 @@ import java.util.concurrent.locks.ReentrantLock
 import java.nio.file.Paths
 import java.nio.file.Files
 import org.json.JSONObject
-import it.unibo.basicfan.WsFan
+import it.unibo.fan.WsFan
 import it.unibo.fan.AbstractFan
 import it.unibo.fan.FanFactory
 import it.unibo.weightsensor.AbstractWeightSensor

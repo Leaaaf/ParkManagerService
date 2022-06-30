@@ -13,8 +13,6 @@ class Dtfreeactor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( name
 	override fun getInitialState() : String{
 		return "s0"
 	}
-	@kotlinx.coroutines.ObsoleteCoroutinesApi
-	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				val DTFREE = it.unibo.parkingmanagerservice.entity.timer.Timer.get().DTFREE

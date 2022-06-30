@@ -1,6 +1,6 @@
 package it.unibo.fan
 
-import it.unibo.basicfan.WsFan
+import it.unibo.fan.WsFan
 
 object FanFactory {
 	

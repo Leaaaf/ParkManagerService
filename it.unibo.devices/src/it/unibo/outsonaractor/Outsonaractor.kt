@@ -13,8 +13,6 @@ class Outsonaractor ( name: String, scope: CoroutineScope  ) : ActorBasicFsm( na
 	override fun getInitialState() : String{
 		return "s0"
 	}
-	@kotlinx.coroutines.ObsoleteCoroutinesApi
-	@kotlinx.coroutines.ExperimentalCoroutinesApi			
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				var outsonar = it.unibo.devices.DeviceManager.getDevice("outsonar")
